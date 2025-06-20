@@ -1,5 +1,29 @@
 {
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.10"
-  }
+    "cors": "^2.8.5",
+    "docx": "^9.5.1",
+    "express": "^5.1.0",
+    "mammoth": "^1.9.1",
+    "multer": "^2.0.1",
+    "pdf-parse": "^1.1.1",
+    "tailwindcss": "^4.1.10"
+  },
+  "name": "summerproject",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000S\u0000u\u0000m\u0000m\u0000e\u0000r\u0000P\u0000r\u0000o\u0000j\u0000e\u0000c\u0000t\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahyan-M/SummerProject.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ahyan-M/SummerProject/issues"
+  },
+  "homepage": "https://github.com/Ahyan-M/SummerProject#readme"
 }
