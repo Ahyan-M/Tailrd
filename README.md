@@ -4,7 +4,6 @@ A web application that optimizes your resume by analyzing job descriptions and i
 
 ## 🚀 Features
 
-- **Multi-format Support**: Upload resumes in PDF or DOCX format
 - **Smart Keyword Extraction**: Automatically identifies technical skills and keywords from job descriptions
 - **Intelligent Optimization**: Adds missing keywords to appropriate sections (Skills, Tools, Frameworks, etc.)
 - **Professional Output**: Always returns a clean, optimized DOCX file
