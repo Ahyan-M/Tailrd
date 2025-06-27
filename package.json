@@ -1,11 +1,14 @@
 {
   "dependencies": {
+    "@tinymce/tinymce-react": "^6.2.1",
     "cors": "^2.8.5",
     "docx": "^9.5.1",
     "express": "^5.1.0",
+    "libreoffice-convert": "^1.6.1",
     "mammoth": "^1.9.1",
     "multer": "^2.0.1",
     "pdf-parse": "^1.1.1",
+    "react-quill": "^2.0.0",
     "tailwindcss": "^4.1.10"
   },
   "name": "summerproject",
