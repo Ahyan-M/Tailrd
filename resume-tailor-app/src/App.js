@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { supabase } from './supabase';
+import { API_ENDPOINTS } from './config';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
 import ResumeOptimizer from './pages/ResumeOptimizer';
@@ -216,7 +217,7 @@ function App() {
     formData.append("exportFormat", exportFormat);
 
     try {
-      const response = await fetch("http://localhost:8000/optimize-docx", {
+      const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData
       });
@@ -253,7 +254,7 @@ function App() {
       suggestForm.append("jobDescription", jobDescription);
       
       console.log("Fetching suggestions...");
-      const response = await fetch("http://localhost:8000/suggest-keywords", {
+      const response = await fetch(API_ENDPOINTS.SUGGEST_KEYWORDS, {
         method: "POST",
         body: suggestForm
       });
@@ -305,7 +306,7 @@ function App() {
     formData.append("extraKeywords", selectedKeywords.join(", "));
     
     try {
-      const response = await fetch("http://localhost:8000/finalize-resume", {
+      const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
         body: formData
       });
@@ -362,7 +363,7 @@ function App() {
       formData.append("exportFormat", exportFormat);
       formData.append("extraKeywords", selectedKeywords.join(", "));
       
-      const response = await fetch("http://localhost:8000/download-optimized", {
+      const response = await fetch(API_ENDPOINTS.DOWNLOAD_OPTIMIZED, {
         method: "POST",
         body: formData
       });
@@ -402,7 +403,7 @@ function App() {
     formData.append("exportFormat", exportFormat);
     
     try {
-      const response = await fetch("http://localhost:8000/optimize-docx", {
+      const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData
       });
