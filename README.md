@@ -5,10 +5,10 @@ A web application that optimizes your resume by analyzing job descriptions and i
 ## 🚀 Features
 
 - **Smart Keyword Extraction**: Automatically identifies technical skills and keywords from job descriptions
-- **Intelligent Optimization**: Adds missing keywords to appropriate sections (Skills, Tools, Frameworks, etc.)
+- **Intelligent Optimization**: Adds missing keywords to appropriate sections (Skills, Tools, Frameworks, etc.), which helps with getting a impressive score in an ATS.
 - **Professional Output**: Always returns a clean, optimized DOCX file
-- **Modern UI**: Beautiful, responsive interface with dark mode support
-- **Real-time Processing**: Fast optimization with immediate download
+- **Modern UI**: Beautiful, responsive and minimialistic interface with dark mode support
+- **Real-time Processing**: Fast optimization with immediate download 
 
 ## 🛠️ Tech Stack
 
