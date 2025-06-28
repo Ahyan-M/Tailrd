@@ -9,6 +9,7 @@ const Dashboard = ({
   setCurrentPage
 }) => {
   const recentApplications = jobApplications.slice(0, 3);
+  const username = user?.user_metadata?.username || user?.username || user?.email?.split('@')[0] || '';
   
   const quickActions = [
     {
@@ -44,7 +45,7 @@ const Dashboard = ({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Welcome back, {user?.email?.split('@')[0]}! 👋
+              Welcome back, {username}! 👋
             </h1>
             <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Ready to optimize your resume and land your dream job?
