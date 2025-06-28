@@ -36,7 +36,8 @@ TECHNICAL_KEYWORDS = {
         'python', 'java', 'javascript', 'js', 'typescript', 'ts', 'c++', 'c#', 'ruby', 'php', 'swift',
         'kotlin', 'go', 'golang', 'rust', 'scala', 'r', 'matlab', 'sql', 'perl', 'shell', 'bash',
         'dart', 'elixir', 'haskell', 'lua', 'assembly', 'fortran', 'cobol', 'ada', 'groovy', 'clojure',
-        'c', 'f#', 'ocaml', 'erlang', 'julia', 'nim', 'crystal', 'zig', 'v', 'odin', 'pony'
+        'c', 'f#', 'ocaml', 'erlang', 'julia', 'nim', 'crystal', 'zig', 'v', 'odin', 'pony',
+        'ziglang', 'picolisp', 'red', 'janet'
     },
     'web_technologies': {
         'html', 'css', 'sass', 'less', 'react', 'angular', 'vue', 'node.js', 'nodejs', 'express',
@@ -44,26 +45,30 @@ TECHNICAL_KEYWORDS = {
         'next.js', 'nuxt.js', 'svelte', 'sveltekit', 'astro', 'remix', 'gatsby', 'webpack', 'vite',
         'rollup', 'esbuild', 'parcel', 'graphql', 'apollo', 'prisma', 'sequelize', 'typeorm',
         'nestjs', 'fastapi', 'fastify', 'hapi', 'koa', 'web3', 'solidity', 'ethers.js', 'web3.js',
-        'stripe', 'twilio', 'sendgrid', 'mailgun', 'socket.io', 'ws', 'websocket'
+        'stripe', 'twilio', 'sendgrid', 'mailgun', 'socket.io', 'ws', 'websocket',
+        'htmx', 'alpine.js', 'unocss'
     },
     'databases': {
         'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'sqlite', 'sql server', 'dynamodb',
         'cassandra', 'elasticsearch', 'neo4j', 'mariadb', 'cockroachdb', 'timescaledb', 'influxdb',
         'clickhouse', 'snowflake', 'bigquery', 'redshift', 'databricks', 'hive', 'hbase', 'couchdb',
-        'rethinkdb', 'arangodb', 'fauna', 'supabase', 'planetscale', 'firebase', 'appwrite'
+        'rethinkdb', 'arangodb', 'fauna', 'supabase', 'planetscale', 'firebase', 'appwrite',
+        'duckdb', 'trino', 'yugabyte', 'tidb'
     },
     'cloud_platforms': {
         'aws', 'azure', 'gcp', 'google cloud', 'heroku', 'digitalocean', 'firebase',
         'cloudflare', 'vercel', 'netlify', 'alibaba cloud', 'oracle cloud', 'ibm cloud',
         'linode', 'vultr', 'render', 'railway', 'fly.io', 'supabase', 'appwrite', 'hasura',
-        'stripe', 'twilio', 'sendgrid', 'mailgun', 'auth0', 'okta', 'cognito'
+        'stripe', 'twilio', 'sendgrid', 'mailgun', 'auth0', 'okta', 'cognito',
+        'render.com', 'backblaze b2'
     },
     'data_science': {
         'pandas', 'numpy', 'scipy', 'scikit-learn', 'sklearn', 'tensorflow', 'pytorch', 'keras',
         'matplotlib', 'seaborn', 'plotly', 'tableau', 'power bi', 'jupyter', 'spss', 'sas',
         'opencv', 'pillow', 'statsmodels', 'xgboost', 'lightgbm', 'catboost', 'fastai',
         'transformers', 'spacy', 'nltk', 'gensim', 'word2vec', 'bert', 'gpt', 'llama',
-        'streamlit', 'gradio', 'mlflow', 'kubeflow', 'ray', 'dask', 'vaex', 'modin', 'rapids'
+        'streamlit', 'gradio', 'mlflow', 'kubeflow', 'ray', 'dask', 'vaex', 'modin', 'rapids',
+        'polars', 'orange3', 'dataspell'
     },
     'tools_and_platforms': {
         'git', 'docker', 'kubernetes', 'jenkins', 'jira', 'confluence', 'bitbucket', 'github',
@@ -74,73 +79,8 @@ TECHNICAL_KEYWORDS = {
         'bamboo', 'sonarqube', 'codecov', 'coveralls', 'semaphore', 'appveyor', 'wercker',
         'drone', 'concourse', 'spinnaker', 'argo', 'tekton', 'skaffold', 'tilt', 'lens',
         'rancher', 'openshift', 'minikube', 'kind', 'k3s', 'microk8s', 'kubectl', 'kustomize',
-        'operator-sdk', 'crossplane', 'pulumi', 'cloudformation', 'serverless'
-    },
-    'machine_learning': {
-        'nlp', 'computer vision', 'deep learning', 'neural networks', 'machine learning',
-        'ai', 'artificial intelligence', 'data mining', 'regression', 'classification',
-        'reinforcement learning', 'supervised learning', 'unsupervised learning',
-        'semi-supervised learning', 'transfer learning', 'federated learning', 'active learning',
-        'ensemble learning', 'bayesian optimization', 'hyperparameter tuning', 'feature engineering',
-        'feature selection', 'dimensionality reduction', 'clustering', 'anomaly detection',
-        'recommendation systems', 'natural language processing', 'speech recognition',
-        'sentiment analysis', 'object detection', 'image segmentation', 'text classification',
-        'named entity recognition', 'machine translation', 'question answering', 'text summarization',
-        'generative adversarial networks', 'variational autoencoders', 'attention mechanisms',
-        'transformers', 'cnn', 'rnn', 'lstm', 'gru', 'autoencoder', 'boltzmann machine',
-        'hopfield network', 'self-organizing map', 'radial basis function', 'perceptron',
-        'multilayer perceptron', 'backpropagation', 'gradient descent', 'stochastic gradient descent',
-        'adam', 'rmsprop', 'adagrad', 'momentum', 'nesterov momentum', 'learning rate scheduling',
-        'early stopping', 'dropout', 'batch normalization', 'weight decay', 'data augmentation',
-        'cross-validation', 'k-fold cross-validation', 'stratified k-fold', 'leave-one-out',
-        'bootstrap', 'precision', 'recall', 'f1-score', 'auc', 'roc curve', 'confusion matrix',
-        'mean squared error', 'mean absolute error', 'r-squared', 'adjusted r-squared',
-        'log loss', 'hinge loss', 'cross-entropy loss', 'kullback-leibler divergence',
-        'jensen-shannon divergence', 'wasserstein distance', 'earth mover\'s distance',
-        'hausdorff distance', 'chamfer distance', 'iou', 'dice coefficient', 'perplexity',
-        'bleu score', 'rouge score', 'meteor score', 'cider score', 'spice score',
-        'bert score', 'mover score', 'word mover\'s distance', 'cosine similarity',
-        'euclidean distance', 'manhattan distance', 'chebyshev distance', 'minkowski distance',
-        'mahalanobis distance', 'jaccard similarity', 'dice similarity', 'overlap coefficient',
-        'sorensen-dice coefficient', 'tversky index', 'tanimoto coefficient', 'pearson correlation',
-        'spearman correlation', 'kendall correlation', 'mutual information', 'entropy',
-        'cross-entropy', 'kl divergence', 'js divergence'
-    },
-    'mobile_development': {
-        'react native', 'flutter', 'xamarin', 'ionic', 'cordova', 'phonegap', 'objective-c',
-        'dart', 'swift', 'kotlin', 'java', 'android studio', 'xcode', 'app store',
-        'google play', 'firebase mobile', 'onesignal', 'push notifications', 'mobile testing',
-        'appium', 'detox', 'fastlane', 'codemagic', 'bitrise', 'appcenter'
-    },
-    'game_development': {
-        'unity', 'unreal engine', 'godot', 'cryengine', 'lumberyard', 'opengl', 'directx',
-        'vulkan', 'metal', 'webgl', 'three.js', 'babylon.js', 'playcanvas', 'aframe',
-        'phaser', 'pixi.js', 'matter.js', 'cannon.js', 'ammo.js', 'box2d', 'chipmunk',
-        'monogame', 'libgdx', 'sfml', 'sdl', 'allegro', 'love2d', 'defold', 'corona',
-        'cocos2d', 'spritekit', 'scenekit', 'metal performance shaders', 'compute shaders',
-        'vertex shaders', 'fragment shaders', 'geometry shaders', 'tessellation shaders'
-    },
-    'blockchain_web3': {
-        'ethereum', 'bitcoin', 'solidity', 'web3', 'ethers.js', 'web3.js', 'hardhat',
-        'truffle', 'ganache', 'metamask', 'ipfs', 'polygon', 'binance smart chain',
-        'cardano', 'polkadot', 'cosmos', 'solana', 'avalanche', 'chainlink', 'uniswap',
-        'opensea', 'nft', 'defi', 'dao', 'smart contracts', 'consensus mechanisms',
-        'proof of work', 'proof of stake', 'delegated proof of stake', 'proof of authority',
-        'proof of space', 'proof of time', 'proof of capacity', 'proof of burn',
-        'proof of activity', 'proof of importance', 'proof of reputation', 'proof of identity',
-        'proof of location', 'proof of bandwidth', 'proof of storage', 'proof of computation',
-        'proof of learning', 'proof of human', 'proof of brain', 'layer 1', 'layer 2',
-        'sidechains', 'rollups', 'optimistic rollups', 'zk rollups', 'plasma', 'state channels',
-        'lightning network', 'liquid network', 'atomic swaps', 'cross-chain bridges',
-        'oracles', 'decentralized exchanges', 'automated market makers', 'yield farming',
-        'liquidity mining', 'staking', 'governance tokens', 'utility tokens', 'security tokens',
-        'stablecoins', 'wrapped tokens', 'token standards', 'erc-20', 'erc-721', 'erc-1155',
-        'bep-20', 'bep-721', 'bep-1155', 'spl tokens', 'fungible tokens', 'non-fungible tokens',
-        'semi-fungible tokens', 'tokenomics', 'token distribution', 'token vesting',
-        'token burning', 'token minting', 'token staking', 'token farming', 'token swapping',
-        'token lending', 'token borrowing', 'token insurance', 'token derivatives',
-        'token options', 'token futures', 'token perpetuals', 'token options', 'token futures',
-        'token perpetuals', 'token options', 'token futures', 'token perpetuals'
+        'operator-sdk', 'crossplane', 'pulumi', 'cloudformation', 'serverless',
+        'devcontainers', 'act', 'localstack', 'lazydocker', 'ghcup'
     }
 }
 
