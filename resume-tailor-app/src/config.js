@@ -1,4 +1,7 @@
 // API Configuration
+// For production with custom domain, use: 'https://api.tailrd.com'
+// For current Render deployment: 'https://tailrd.onrender.com'
+// For local development: 'http://localhost:8000'
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tailrd.onrender.com';
 
 export const API_ENDPOINTS = {

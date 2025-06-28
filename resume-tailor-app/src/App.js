@@ -10,6 +10,7 @@ import JobTracker from './pages/JobTracker';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Contact from './pages/Contact';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   // Authentication state
@@ -913,6 +914,8 @@ function App() {
       {footerPage === 'privacy' && <PrivacyPolicy />}
       {footerPage === 'terms' && <TermsOfService />}
       {footerPage === 'contact' && <Contact />}
+
+      <Analytics />
     </div>
   );
 }
