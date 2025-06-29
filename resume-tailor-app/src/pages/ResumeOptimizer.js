@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
+import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
+import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
+import { ReactComponent as DownToLineIcon } from '../assets/icons/down-to-line.svg';
 
 const ResumeOptimizer = ({
   resumeFile,
@@ -30,10 +34,10 @@ const ResumeOptimizer = ({
   const [optimizing, setOptimizing] = useState(false);
 
   const steps = [
-    { id: 1, name: 'Upload Resume', icon: '📄' },
-    { id: 2, name: 'Job Details', icon: '💼' },
-    { id: 3, name: 'Optimize', icon: '⚡' },
-    { id: 4, name: 'Download', icon: '📥' }
+    { id: 1, name: 'Upload Resume', icon: <MemoIcon width={22} height={22} /> },
+    { id: 2, name: 'Job Details', icon: <BriefcaseIcon width={22} height={22} /> },
+    { id: 3, name: 'Optimize', icon: <BoltIcon width={22} height={22} /> },
+    { id: 4, name: 'Download', icon: <DownToLineIcon width={22} height={22} /> }
   ];
 
   const formatScore = (score) => {
@@ -69,28 +73,24 @@ const ResumeOptimizer = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 lg:p-8">
+    <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          Resume Optimizer 🚀
-        </h1>
-        <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Upload, optimize, and download your ATS-ready resume
-        </p>
+        <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
+        <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Upload, optimize, and download your ATS-ready resume</p>
       </div>
 
       {/* Progress Steps */}
-      <div className="max-w-4xl mx-auto mb-12">
+      <div className="max-w-4xl w-full mx-auto mb-12">
         <div className="flex items-center justify-between">
           {steps.map((step, index) => (
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all duration-300 ${
-                  currentStep >= step.id
+                  currentStep === step.id
                     ? darkMode 
                       ? 'bg-gray-800 text-white' 
-                      : 'bg-gray-900 text-white'
+                      : 'bg-blue-100 text-blue-700'
                     : darkMode 
                       ? 'bg-gray-700 text-gray-400' 
                       : 'bg-gray-200 text-gray-500'
@@ -118,7 +118,7 @@ const ResumeOptimizer = ({
       </div>
 
       {/* Step Content */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl w-full mx-auto">
         {/* Step 1: Upload Resume */}
         {currentStep === 1 && (
           <div className="space-y-8">
@@ -132,6 +132,7 @@ const ResumeOptimizer = ({
                     ? 'border-gray-600 hover:border-gray-500' 
                     : 'border-gray-300 hover:border-gray-400'
               }`}
+              style={{ minHeight: '320px', minWidth: '520px', padding: '3.5rem' }}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -144,8 +145,6 @@ const ResumeOptimizer = ({
               />
               
               <div className="space-y-6">
-                <div className="text-6xl">📄</div>
-                
                 <div>
                   <h3 className={`text-2xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {resumeFile ? 'File Selected!' : 'Drop your resume here'}
@@ -170,7 +169,6 @@ const ResumeOptimizer = ({
               <div className={`p-6 rounded-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="text-3xl">✅</div>
                     <div>
                       <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                         {resumeFile.name}
@@ -324,7 +322,6 @@ const ResumeOptimizer = ({
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="text-4xl mb-4">📊</div>
                       <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Ready to optimize your resume
                       </p>
@@ -395,10 +392,7 @@ const ResumeOptimizer = ({
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="text-3xl mb-3">🔍</div>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {atsScores ? 'No keyword suggestions available' : 'Optimize first to get suggestions'}
-                      </p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{atsScores ? 'No keyword suggestions available' : 'Optimize first to get suggestions'}</p>
                       {atsScores && (
                         <button
                           onClick={fetchSuggestions}
@@ -442,39 +436,36 @@ const ResumeOptimizer = ({
           <div className="space-y-8">
             <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-8 shadow-sm`}>
               <div className="text-center">
-                <div className="text-6xl mb-4">🎉</div>
-                <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Resume Optimized Successfully!
-                </h2>
-                <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Your resume has been optimized for maximum ATS compatibility
-                </p>
-              </div>
-
-              {atsScores && (
-                <div className="mt-8 text-center">
-                  <div className={`text-4xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
-                    {atsScores.total_score}% ATS Score
-                  </div>
-                  <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {formatScore(atsScores.total_score).label} compatibility
-                  </p>
+                <div className="text-center">
+                  <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimized Successfully!</h2>
+                  <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your resume has been optimized for maximum ATS compatibility</p>
                 </div>
-              )}
 
-              <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <button
-                  onClick={handleDownload}
-                  className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300"
-                >
-                  Download Resume
-                </button>
-                <button
-                  onClick={saveJobApplication}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300"
-                >
-                  Save to Applications
-                </button>
+                {atsScores && (
+                  <div className="mt-8 text-center">
+                    <div className={`text-4xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
+                      {atsScores.total_score}% ATS Score
+                    </div>
+                    <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {formatScore(atsScores.total_score).label} compatibility
+                    </p>
+                  </div>
+                )}
+
+                <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                  <button
+                    onClick={handleDownload}
+                    className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300"
+                  >
+                    Download Resume
+                  </button>
+                  <button
+                    onClick={saveJobApplication}
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+                  >
+                    Save to Applications
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -65,7 +65,7 @@ function App() {
 
   useEffect(() => {
     getSession();
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -104,8 +104,8 @@ function App() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      email,
+      password,
         options: {
           data: {
             username: username,
@@ -135,9 +135,9 @@ function App() {
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      email,
+      password,
+    });
 
       if (error) throw error;
 
@@ -152,7 +152,7 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
       toast.success("Signed out successfully!");
@@ -227,9 +227,9 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      setResult(data);
-
+        const data = await response.json();
+        setResult(data);
+        
       // Get ATS scores from headers if available
       const originalScore = response.headers.get("X-Original-ATS-Score");
       const optimizedScore = response.headers.get("X-Optimized-ATS-Score");
@@ -244,7 +244,7 @@ function App() {
       console.error("Error optimizing resume:", error);
       toast.error("Error optimizing resume. Please try again.");
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -350,7 +350,7 @@ function App() {
       console.error("Error finalizing resume:", error);
       toast.error("Error optimizing resume. Please try again.");
     } finally {
-      setFinalizing(false);
+    setFinalizing(false);
     }
   };
 
@@ -373,15 +373,15 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = companyName && jobRole ? `${companyName} ${jobRole} Resume.${exportFormat}` : "optimized_resume.docx";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = companyName && jobRole ? `${companyName} ${jobRole} Resume.${exportFormat}` : "optimized_resume.docx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       
       toast.success("Resume downloaded successfully!");
     } catch (error) {
@@ -562,7 +562,7 @@ function App() {
 
   // Authentication required
   if (!user) {
-    return (
+  return (
       <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
         <div className="flex min-h-screen">
           {/* Left Side - Hero Section */}
@@ -571,36 +571,26 @@ function App() {
               <div className={`w-20 h-20 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-8`}>
                 <span className="text-4xl font-bold">T</span>
               </div>
-              <h1 className={`text-5xl font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Welcome to Tailrd
-              </h1>
-              <p className={`text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                The AI-powered resume optimizer that helps you land your dream job
-              </p>
+              <h1 className={`text-5xl font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>Welcome to Tailrd</h1>
+              <p className={`text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The AI-powered resume optimizer that helps you land your dream job</p>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <span className="text-lg">🚀</span>
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    AI-powered ATS optimization
-                  </span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI-powered ATS optimization</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <span className="text-lg">📊</span>
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Real-time compatibility scoring
-                  </span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Real-time compatibility scoring</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <span className="text-lg">💼</span>
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Job application tracking
-                  </span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Job application tracking</span>
                 </div>
               </div>
             </div>
@@ -614,14 +604,12 @@ function App() {
                 <div className={`w-16 h-16 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                   <span className="text-2xl font-bold">T</span>
                 </div>
-                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Tailrd
-                </h2>
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</h2>
               </div>
 
               {/* Auth Mode Toggle */}
               <div className="flex mb-8">
-                <button
+          <button
                   onClick={() => setAuthMode('signin')}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
                     authMode === 'signin'
@@ -644,8 +632,8 @@ function App() {
                   }`}
                 >
                   Sign Up
-                </button>
-              </div>
+          </button>
+        </div>
 
               {/* Verification Message */}
               {verificationSent && (
@@ -659,9 +647,9 @@ function App() {
                       <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                         We've sent a verification link to {email}
                       </p>
-                    </div>
-                  </div>
+          </div>
                 </div>
+              </div>
               )}
 
               {/* Auth Forms */}
@@ -721,7 +709,7 @@ function App() {
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Username
                     </label>
-                    <input
+                    <input 
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
@@ -733,12 +721,12 @@ function App() {
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
                       }`}
                     />
-                  </div>
+                </div>
 
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Email Address
-                    </label>
+                      </label>
                     <input
                       type="email"
                       value={email}
@@ -756,7 +744,7 @@ function App() {
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Password
-                    </label>
+                      </label>
                     <input
                       type="password"
                       value={password}
@@ -769,7 +757,7 @@ function App() {
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
                       }`}
                     />
-                  </div>
+                </div>
 
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -782,15 +770,15 @@ function App() {
                       placeholder="Confirm your password"
                       required
                       className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
+                      darkMode 
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                  </div>
+                    }`}
+                  />
+                </div>
 
-                  <button
-                    type="submit"
+                <button
+                  type="submit"
                     disabled={isLoading}
                     className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
                       isLoading
@@ -799,26 +787,26 @@ function App() {
                     }`}
                   >
                     {isLoading ? 'Creating Account...' : 'Create Account'}
-                  </button>
-                </form>
+                </button>
+              </form>
               )}
 
               {/* Dark Mode Toggle */}
               <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button
+                  <button
                   onClick={() => setDarkMode(!darkMode)}
                   className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
+                      darkMode 
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
                   {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                  </button>
+                </div>
+                      </div>
+                    </div>
+                  </div>
       </div>
     );
   }
@@ -891,8 +879,8 @@ function App() {
 
       {/* Toast Container */}
       <ToastContainer
-        position="top-center"
-        autoClose={3000}
+        position="top-right"
+        autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -901,6 +889,12 @@ function App() {
         draggable
         pauseOnHover
         theme="colored"
+        toastClassName={() =>
+          'rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-6 py-4 text-base font-medium max-w-xs w-full animate-fade-in'
+        }
+        bodyClassName={() =>
+          'flex items-center w-full'
+        }
       />
 
       {/* Footer */}

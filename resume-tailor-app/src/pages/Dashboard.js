@@ -1,4 +1,12 @@
 import React from 'react';
+import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
+import { ReactComponent as FolderOpenIcon } from '../assets/icons/folder-open.svg';
+import { ReactComponent as CompassAltIcon } from '../assets/icons/compass-alt.svg';
+import { ReactComponent as ScriptIcon } from '../assets/icons/script.svg';
+import { ReactComponent as ToDoAltIcon } from '../assets/icons/to-do-alt.svg';
+import { ReactComponent as BullseyeArrowIcon } from '../assets/icons/bullseye-arrow.svg';
+import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle.svg';
+import { ReactComponent as ChartLineUpIcon } from '../assets/icons/chart-line-up.svg';
 
 const Dashboard = ({ 
   user, 
@@ -15,7 +23,7 @@ const Dashboard = ({
     {
       title: "Optimize Resume",
       description: "Upload and optimize your resume",
-      icon: "📄",
+      icon: <MemoIcon width={32} height={32} />, 
       action: () => {
         setCurrentPage('resume-optimizer');
       }
@@ -23,7 +31,7 @@ const Dashboard = ({
     {
       title: "View Applications",
       description: "Track your job applications",
-      icon: "📊",
+      icon: <FolderOpenIcon width={32} height={32} />, 
       action: () => {
         setCurrentPage('job-tracker');
       }
@@ -31,7 +39,7 @@ const Dashboard = ({
     {
       title: "ATS Guide",
       description: "Learn about ATS optimization",
-      icon: "📚",
+      icon: <CompassAltIcon width={32} height={32} />, 
       action: () => {
         // Could open help modal or navigate to guide page
       }
@@ -45,14 +53,11 @@ const Dashboard = ({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Welcome back, {username}! 👋
+              Welcome back, {username}!
             </h1>
             <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Ready to optimize your resume and land your dream job?
             </p>
-          </div>
-          <div className={`w-16 h-16 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl flex items-center justify-center shadow-lg`}>
-            <span className="text-2xl">T</span>
           </div>
         </div>
       </div>
@@ -72,7 +77,7 @@ const Dashboard = ({
               }`}
             >
               <div className="relative z-10">
-                <div className="text-3xl mb-3">{action.icon}</div>
+                <div className="mb-3 flex items-center">{action.icon}</div>
                 <h3 className={`text-lg font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {action.title}
                 </h3>
@@ -109,7 +114,7 @@ const Dashboard = ({
           </div>
         ) : recentApplications.length === 0 ? (
           <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            <div className="text-5xl mb-4">📝</div>
+            <div className="flex justify-center mb-4"><ScriptIcon width={48} height={48} /></div>
             <p className="text-lg mb-2">No applications yet</p>
             <p>Upload your first resume to get started!</p>
             <button
@@ -143,19 +148,14 @@ const Dashboard = ({
                     {app.status}
                   </span>
                 </div>
-                
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>ATS Score</p>
-                    <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {app.optimized_ats_score}%
-                    </p>
+                    <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{app.optimized_ats_score}%</p>
                   </div>
                   <div>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Improvement</p>
-                    <p className={`text-xl font-bold ${app.ats_improvement > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {app.ats_improvement > 0 ? '+' : ''}{app.ats_improvement}%
-                    </p>
+                    <p className={`text-xl font-bold ${app.ats_improvement > 0 ? 'text-green-600' : 'text-red-600'}`}>{app.ats_improvement > 0 ? '+' : ''}{app.ats_improvement}%</p>
                   </div>
                 </div>
               </div>
@@ -167,43 +167,24 @@ const Dashboard = ({
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="text-2xl mb-2">📊</div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {jobApplications.length}
-          </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Total Applications
-          </div>
+          <div className="flex justify-center text-2xl mb-2"><ToDoAltIcon width={32} height={32} /></div>
+          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{jobApplications.length}</div>
+          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Applications</div>
         </div>
-        
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="text-2xl mb-2">🎯</div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {jobApplications.filter(app => app.status === 'interviewing').length}
-          </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            In Progress
-          </div>
+          <div className="flex justify-center text-2xl mb-2"><BullseyeArrowIcon width={32} height={32} /></div>
+          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{jobApplications.filter(app => app.status === 'interviewing').length}</div>
+          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>In Progress</div>
         </div>
-        
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="text-2xl mb-2">✅</div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {jobApplications.filter(app => app.status === 'offered').length}
-          </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Offers Received
-          </div>
+          <div className="flex justify-center text-2xl mb-2"><CheckCircleIcon width={32} height={32} /></div>
+          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{jobApplications.filter(app => app.status === 'offered').length}</div>
+          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Offers Received</div>
         </div>
-        
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="text-2xl mb-2">📈</div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%
-          </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Avg ATS Score
-          </div>
+          <div className="flex justify-center text-2xl mb-2"><ChartLineUpIcon width={32} height={32} /></div>
+          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%</div>
+          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avg ATS Score</div>
         </div>
       </div>
     </div>
