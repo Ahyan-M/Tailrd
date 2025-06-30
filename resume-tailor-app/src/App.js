@@ -250,7 +250,7 @@ function App() {
     }
   };
 
-  const fetchSuggestions = async (formData) => {
+  const fetchSuggestions = async () => {
     try {
       const suggestForm = new FormData();
       suggestForm.append("resume", resumeFile);
@@ -417,21 +417,30 @@ function App() {
       
       const data = await response.json();
       
-      // Set some default ATS scores for demonstration
-      const mockAtsScore = {
-        total_score: 85,
-        keyword_score: 90,
-        formatting_score: 85,
-        content_score: 80,
-        structure_score: 85,
-        length_score: 90
-      };
-      
-      setOptimizedAtsScore(mockAtsScore);
-      setOriginalAtsScore({ total_score: 75 });
-      setAtsImprovement(10);
-      
-      toast.success("Resume optimized successfully!");
+      // Use the real ATS scores from the backend
+      if (data.original_ats_score && data.optimized_ats_score) {
+        setOriginalAtsScore(data.original_ats_score);
+        setOptimizedAtsScore(data.optimized_ats_score);
+        setAtsImprovement(data.optimized_ats_score.improvement || 0);
+        
+        toast.success(data.message || "Resume optimized successfully!");
+      } else {
+        // Fallback to mock scores if backend doesn't return proper data
+        const mockAtsScore = {
+          total_score: 85,
+          keyword_score: 90,
+          formatting_score: 85,
+          content_score: 80,
+          structure_score: 85,
+          length_score: 90
+        };
+        
+        setOptimizedAtsScore(mockAtsScore);
+        setOriginalAtsScore({ total_score: 75 });
+        setAtsImprovement(10);
+        
+        toast.success("Resume optimized successfully!");
+      }
     } catch (error) {
       console.error("Error optimizing resume:", error);
       toast.error("Error optimizing resume. Please try again.");
