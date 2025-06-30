@@ -166,12 +166,10 @@ function App() {
   // File handling
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                 file.type === 'application/pdf' || 
-                 file.type === 'text/plain')) {
+    if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       setResumeFile(file);
     } else {
-      toast.error('Please select a valid file (.docx, .pdf, or .txt)');
+      toast.error('Please select a valid .docx file');
     }
   };
 
@@ -189,12 +187,10 @@ function App() {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                 file.type === 'application/pdf' || 
-                 file.type === 'text/plain')) {
+    if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       setResumeFile(file);
     } else {
-      toast.error('Please drop a valid file (.docx, .pdf, or .txt)');
+      toast.error('Please drop a valid .docx file');
     }
   };
 
