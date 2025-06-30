@@ -652,8 +652,7 @@ function App() {
 
               {/* Auth Forms */}
               <div className="relative">
-                <div className={`transition-all duration-500 ease-in-out ${authMode === 'signin' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 absolute inset-0'}`}>
-                  {/* Log In Form */}
+                {authMode === 'signin' && (
                   <form onSubmit={handleSignIn} className="space-y-6">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email Address</label>
@@ -679,10 +678,8 @@ function App() {
                     </div>
                     <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Logging In...' : 'Log In'}</button>
                   </form>
-                </div>
-
-                <div className={`transition-all duration-500 ease-in-out ${authMode === 'signup' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 absolute inset-0'}`}>
-                  {/* Sign Up Form */}
+                )}
+                {authMode === 'signup' && (
                   <form onSubmit={handleSignUp} className="space-y-6">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Username</label>
@@ -736,7 +733,7 @@ function App() {
                     </div>
                     <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Creating Account...' : 'Create Account'}</button>
                   </form>
-                </div>
+                )}
               </div>
             </div>
           </div>
