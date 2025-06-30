@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { ReactComponent as TailrdIcon } from '../assets/icons/TailrdIcon.svg';
 
 const Navigation = ({ 
   currentPage, 
@@ -48,7 +49,7 @@ const Navigation = ({
             aria-label="Go to Dashboard"
           >
             <div className={`w-8 h-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} rounded flex items-center justify-center`}>
-              <span className="text-lg font-extrabold">T</span>
+              <TailrdIcon className="w-6 h-6" />
             </div>
             <span className={`text-lg font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</span>
           </button>
