@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as FolderOpenIcon } from '../assets/icons/folder-open.svg';
 import { ReactComponent as CompassAltIcon } from '../assets/icons/compass-alt.svg';
@@ -16,12 +16,15 @@ const Dashboard = ({
   fetchJobApplications,
   setCurrentPage
 }) => {
+  const hasFetched = useRef(false);
+
   // Automatically fetch job applications when component mounts
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetched.current) {
+      hasFetched.current = true;
       fetchJobApplications();
     }
-  }, [user, fetchJobApplications]);
+  }, [user]);
 
   const recentApplications = jobApplications.slice(0, 3);
   const username = user?.user_metadata?.username || user?.username || user?.email?.split('@')[0] || '';

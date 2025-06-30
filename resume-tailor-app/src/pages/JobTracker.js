@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ReactComponent as ToDoAltIcon } from '../assets/icons/to-do-alt.svg';
 import { ReactComponent as BullseyeArrowIcon } from '../assets/icons/bullseye-arrow.svg';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle.svg';
@@ -14,12 +14,15 @@ const JobTracker = ({
   updateApplicationStatus,
   deleteApplication
 }) => {
+  const hasFetched = useRef(false);
+
   // Automatically fetch job applications when component mounts
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetched.current) {
+      hasFetched.current = true;
       fetchJobApplications();
     }
-  }, [user, fetchJobApplications]);
+  }, [user]);
 
   return (
     <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
@@ -163,4 +166,4 @@ const JobTracker = ({
   );
 };
 
-export default JobTracker; 
+export default JobTracker;
