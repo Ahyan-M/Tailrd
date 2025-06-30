@@ -88,10 +88,35 @@ function App() {
 
   const getSession = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      // Handle authentication callback from email confirmation
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      
+      // Check if we're handling a callback (email confirmation, etc.)
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Set the session with the tokens from URL
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (sessionError) throw sessionError;
+        
+        // Clear the URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        setUser(sessionData.session?.user ?? null);
+        toast.success("Email confirmed successfully! Welcome to Tailrd!");
+      } else {
+        setUser(data.session?.user ?? null);
+      }
     } catch (error) {
       console.error('Error getting session:', error);
+      toast.error("Authentication error: " + error.message);
     } finally {
       setAuthLoading(false);
     }
@@ -116,7 +141,8 @@ function App() {
         options: {
           data: {
             username: signupUsername,
-          }
+          },
+          emailRedirectTo: window.location.origin
         }
       });
       if (error) throw error;

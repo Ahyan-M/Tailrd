@@ -374,9 +374,10 @@ def optimize_docx():
     if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
         return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
 
-    # Add job description length validation
-    if len(job_description) > 50000:  # 50KB limit
-        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
+    # Check word count limit (750 words)
+    word_count = len(job_description.split())
+    if word_count > 750:
+        return jsonify({'error': f'Job description too long. Please keep it under 750 words. Current: {word_count} words.'}), 400
 
     try:
         # Save uploaded file to a temp location
@@ -613,8 +614,9 @@ def suggest_keywords():
         return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
 
     # Add job description length validation
-    if len(job_description) > 50000:  # 50KB limit
-        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
+    word_count = len(job_description.split())
+    if word_count > 750:
+        return jsonify({'error': f'Job description too long. Please keep it under 750 words. Current: {word_count} words.'}), 400
     
     try:
         # Save uploaded file to a temp location
@@ -662,8 +664,9 @@ def finalize_resume():
         return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
 
     # Add job description length validation
-    if len(job_description) > 50000:  # 50KB limit
-        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
+    word_count = len(job_description.split())
+    if word_count > 750:
+        return jsonify({'error': f'Job description too long. Please keep it under 750 words. Current: {word_count} words.'}), 400
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:

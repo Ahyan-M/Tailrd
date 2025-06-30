@@ -244,9 +244,16 @@ const ResumeOptimizer = ({
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
                 }`}
               />
-              <div className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                {jobDescription.length} characters
+              {/* Live word count and limit feedback */}
+              <div className={`text-sm mt-2 ${jobDescription.split(/\s+/).filter(Boolean).length > 750 ? 'text-red-500 font-semibold' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {jobDescription.split(/\s+/).filter(Boolean).length} / 750 words
+                {jobDescription.split(/\s+/).filter(Boolean).length > 750 && (
+                  <span className="ml-2">(Maximum reached)</span>
+                )}
               </div>
+              {jobDescription.split(/\s+/).filter(Boolean).length > 750 && (
+                <div className="text-red-500 text-xs mt-1">Job description is too long. Please keep it under 750 words.</div>
+              )}
             </div>
 
             <div className="flex justify-between items-center">
@@ -263,9 +270,9 @@ const ResumeOptimizer = ({
               
               <button
                 onClick={() => setCurrentStep(3)}
-                disabled={!canProceedToStep3}
+                disabled={!canProceedToStep3 || jobDescription.split(/\s+/).filter(Boolean).length > 750}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  !canProceedToStep3
+                  !canProceedToStep3 || jobDescription.split(/\s+/).filter(Boolean).length > 750
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-gray-900 hover:bg-gray-800 text-white'
                 }`}
