@@ -227,13 +227,3 @@ npm start
 
 ---
 
-## Contact & Support
-
-- Email: [support@tailrd.com](mailto:support@tailrd.com)
-- For help, feedback, or questions, use the Contact page or email above.
-
----
-
-**Tailrd — Made for job seekers, by job seekers.**
-
----
