@@ -235,5 +235,3 @@ npm start
 ---
 
 **Tailrd — Made for job seekers, by job seekers.**
-
----
