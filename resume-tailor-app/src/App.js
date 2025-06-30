@@ -59,10 +59,14 @@ function App() {
 
   // Authentication state
   const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // Separate state for Log In
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  // Separate state for Sign Up
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
 
@@ -96,31 +100,26 @@ function App() {
   // Authentication handlers
   const handleSignUp = async (e) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
+    if (signupPassword !== signupConfirmPassword) {
       toast.error("Passwords don't match!");
       return;
     }
-
-    if (password.length < 6) {
+    if (signupPassword.length < 6) {
       toast.error("Password must be at least 6 characters long!");
       return;
     }
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+        email: signupEmail,
+        password: signupPassword,
         options: {
           data: {
-            username: username,
+            username: signupUsername,
           }
         }
       });
-
       if (error) throw error;
-
       if (data.user && !data.user.email_confirmed_at) {
         setVerificationSent(true);
         toast.success("Verification email sent! Please check your inbox.");
@@ -138,19 +137,16 @@ function App() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+        email: loginEmail,
+        password: loginPassword,
+      });
       if (error) throw error;
-
       setUser(data.user);
       toast.success("Welcome back!");
     } catch (error) {
-      toast.error("Error signing in: " + error.message);
+      toast.error("Error logging in: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -647,7 +643,7 @@ function App() {
                         Check your email!
                       </h3>
                       <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
-                        We've sent a verification link to {email}
+                        We've sent a verification link to {signupEmail}
                       </p>
                     </div>
                   </div>
@@ -660,52 +656,28 @@ function App() {
                   {/* Log In Form */}
                   <form onSubmit={handleSignIn} className="space-y-6">
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Email Address
-                      </label>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email Address</label>
                       <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
                         placeholder="Enter your email"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
                     </div>
-                    
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Password
-                      </label>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
                       <input
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
                         placeholder="Enter your password"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
                     </div>
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
-                        isLoading
-                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                          : 'bg-black hover:bg-gray-800 text-white'
-                      }`}
-                    >
-                      {isLoading ? 'Logging In...' : 'Log In'}
-                    </button>
+                    <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Logging In...' : 'Log In'}</button>
                   </form>
                 </div>
 
@@ -713,94 +685,56 @@ function App() {
                   {/* Sign Up Form */}
                   <form onSubmit={handleSignUp} className="space-y-6">
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Username
-                      </label>
-                      <input 
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Username</label>
+                      <input
                         type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={signupUsername}
+                        onChange={(e) => setSignupUsername(e.target.value)}
                         placeholder="Choose a username"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
                     </div>
-
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Email Address
-                      </label>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email Address</label>
                       <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={signupEmail}
+                        onChange={(e) => setSignupEmail(e.target.value)}
                         placeholder="Enter your email"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
                     </div>
-                    
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Password
-                      </label>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
                       <input
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
                         placeholder="Create a password (min 6 characters)"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
                     </div>
-
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Confirm Password
-                      </label>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Confirm Password</label>
                       <input
                         type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={signupConfirmPassword}
+                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
                         placeholder="Confirm your password"
                         required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                        } ${confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500' : ''} ${confirmPassword && password === confirmPassword ? 'border-green-500 focus:border-green-500' : ''}`}
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'} ${signupConfirmPassword && signupPassword !== signupConfirmPassword ? 'border-red-500 focus:border-red-500' : ''} ${signupConfirmPassword && signupPassword === signupConfirmPassword ? 'border-green-500 focus:border-green-500' : ''}`}
                       />
-                      {confirmPassword && password !== confirmPassword && (
+                      {signupConfirmPassword && signupPassword !== signupConfirmPassword && (
                         <p className="text-red-500 text-sm mt-1">Passwords don't match</p>
                       )}
-                      {confirmPassword && password === confirmPassword && (
+                      {signupConfirmPassword && signupPassword === signupConfirmPassword && (
                         <p className="text-green-500 text-sm mt-1">Passwords Match!</p>
                       )}
                     </div>
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
-                        isLoading
-                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                          : 'bg-black hover:bg-gray-800 text-white'
-                      }`}
-                    >
-                      {isLoading ? 'Creating Account...' : 'Create Account'}
-                    </button>
+                    <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Creating Account...' : 'Create Account'}</button>
                   </form>
                 </div>
               </div>
