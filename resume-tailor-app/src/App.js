@@ -622,9 +622,9 @@ function App() {
   };
 
   // Loading state
-  if (authLoading) {
+   if (authLoading) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600"></div>
         </div>
@@ -635,7 +635,7 @@ function App() {
   // Authentication required
   if (!user) {
   return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
         <div className="flex min-h-screen">
           {/* Left Side - Hero Section */}
           <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
@@ -814,7 +814,7 @@ function App() {
 
   // Render main application
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+     <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* Navigation */}
       <Navigation
         currentPage={currentPage}
