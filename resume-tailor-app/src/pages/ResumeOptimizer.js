@@ -139,7 +139,7 @@ const ResumeOptimizer = ({
             >
               <input
                 type="file"
-                accept=".docx"
+                accept=".docx,.pdf,.txt"
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
@@ -159,7 +159,7 @@ const ResumeOptimizer = ({
 
                 {!resumeFile && (
                   <div className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                    Supports .docx files only
+                    Supports .docx, .pdf, and .txt files
                   </div>
                 )}
               </div>

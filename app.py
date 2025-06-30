@@ -360,11 +360,7 @@ def optimize_docx():
     job_description = request.form['jobDescription']
     company_name = request.form.get('companyName', '').strip()
     job_role = request.form.get('jobRole', '').strip()
-    export_format = 'docx'  # Force docx only
-
-    # Check file extension/type
-    if not resume_file.filename.lower().endswith('.docx'):
-        return jsonify({'error': 'Only .docx files are supported.'}), 400
+    export_format = request.form.get('exportFormat', 'docx').lower()
 
     # Save uploaded file to a temp location
     with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
@@ -390,18 +386,52 @@ def optimize_docx():
     # Calculate optimized ATS score
     optimized_ats_score = calculate_ats_score(optimized_text, job_description, original_ats_score['total_score'])
 
-    # Always export as DOCX
-    out_fd, out_path = tempfile.mkstemp(suffix='.docx')
-    os.close(out_fd)
-    doc.save(out_path)
-    filename = create_export_filename(company_name, job_role, 'docx')
-    response = send_file(out_path, as_attachment=True, download_name=filename)
+    # Handle different export formats
+    if export_format == 'txt':
+        # Convert to plain text
+        text_content = docx_to_text(doc)
+        text_buffer = io.BytesIO()
+        text_buffer.write(text_content.encode('utf-8'))
+        text_buffer.seek(0)
+        filename = create_export_filename(company_name, job_role, 'txt')
+        response = send_file(
+            text_buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/plain'
+        )
+    else:
+        # Default: DOCX format
+        out_fd, out_path = tempfile.mkstemp(suffix='.docx')
+        os.close(out_fd)
+        doc.save(out_path)
+        filename = create_export_filename(company_name, job_role, 'docx')
+        response = send_file(out_path, as_attachment=True, download_name=filename)
 
     # Add ATS scores to response headers for frontend access
     response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
     response.headers['X-Optimized-ATS-Score'] = str(optimized_ats_score['total_score'])
     response.headers['X-ATS-Improvement'] = str(optimized_ats_score['improvement'])
-    return response
+    
+    # Always return JSON with detailed ATS scores and file info
+    return jsonify({
+        'original_ats_score': original_ats_score,
+        'optimized_ats_score': optimized_ats_score,
+        'keywords': list(keywords.keys()) if isinstance(keywords, dict) else keywords,
+        'missing_keywords': missing_keywords,
+        'keywords_added': len(missing_keywords),
+        'resumeText': optimized_text[:1000] + "..." if len(optimized_text) > 1000 else optimized_text,
+        'download_ready': True,
+        'message': f'Resume optimized successfully! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
+        'debug_info': {
+            'original_text_length': len(full_text),
+            'optimized_text_length': len(optimized_text),
+            'text_added': len(optimized_text) - len(full_text),
+            'original_keyword_score': original_ats_score['keyword_score'],
+            'optimized_keyword_score': optimized_ats_score['keyword_score'],
+            'keyword_improvement': optimized_ats_score['keyword_score'] - original_ats_score['keyword_score']
+        }
+    })
 
 @app.route('/export-formats', methods=['GET'])
 def get_export_formats():
@@ -413,6 +443,12 @@ def get_export_formats():
                 'label': 'Microsoft Word (.docx)',
                 'description': 'Best for editing and ATS compatibility',
                 'icon': '\ud83d\udcc4'
+            },
+            {
+                'value': 'txt',
+                'label': 'Plain Text (.txt)',
+                'description': 'Simple text format for basic applications',
+                'icon': '\ud83d\udcdd'
             }
         ]
     })
@@ -565,10 +601,7 @@ def finalize_resume():
     extra_keywords = request.form.get('extraKeywords', '')
     company_name = request.form.get('companyName', '').strip()
     job_role = request.form.get('jobRole', '').strip()
-    export_format = 'docx'  # Force docx only
-
-    if not resume_file.filename.lower().endswith('.docx'):
-        return jsonify({'error': 'Only .docx files are supported.'}), 400
+    export_format = request.form.get('exportFormat', 'docx').lower()
 
     with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
         resume_file.save(tmp.name)
@@ -597,17 +630,30 @@ def finalize_resume():
     # Calculate final optimized ATS score
     final_ats_score = calculate_ats_score(final_text, job_description, original_ats_score['total_score'])
 
-    # Always export as DOCX
-    out_fd, out_path = tempfile.mkstemp(suffix='.docx')
-    os.close(out_fd)
-    doc.save(out_path)
-    filename = create_export_filename(company_name, job_role, 'docx')
-    response = send_file(out_path, as_attachment=True, download_name=filename)
-
+    if export_format == 'txt':
+        text_content = docx_to_text(doc)
+        text_buffer = io.BytesIO()
+        text_buffer.write(text_content.encode('utf-8'))
+        text_buffer.seek(0)
+        filename = create_export_filename(company_name, job_role, 'txt')
+        response = send_file(
+            text_buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/plain'
+        )
+    else:
+        out_fd, out_path = tempfile.mkstemp(suffix='.docx')
+        os.close(out_fd)
+        doc.save(out_path)
+        filename = create_export_filename(company_name, job_role, 'docx')
+        response = send_file(out_path, as_attachment=True, download_name=filename)
+    
     # Add ATS scores to response headers
     response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
     response.headers['X-Optimized-ATS-Score'] = str(final_ats_score['total_score'])
     response.headers['X-ATS-Improvement'] = str(final_ats_score['improvement'])
+    
     return response
 
 def calculate_ats_score(resume_text, job_description, original_score=None):
@@ -947,6 +993,7 @@ def optimize_ats_endpoint():
 
 @app.route('/download-optimized', methods=['POST'])
 def download_optimized():
+    """Download the optimized resume file"""
     try:
         if 'resume' not in request.files or 'jobDescription' not in request.form:
             return jsonify({'error': 'Missing file or job description'}), 400
@@ -955,26 +1002,44 @@ def download_optimized():
         job_description = request.form['jobDescription']
         company_name = request.form.get('companyName', '').strip()
         job_role = request.form.get('jobRole', '').strip()
-        export_format = 'docx'  # Force docx only
+        export_format = request.form.get('exportFormat', 'docx').lower()
 
-        if not resume_file.filename.lower().endswith('.docx'):
-            return jsonify({'error': 'Only .docx files are supported.'}), 400
-
+        # Save uploaded file to a temp location
         with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
             resume_file.save(tmp.name)
             doc = Document(tmp.name)
 
+        # Extract all text for keyword matching
         full_text = '\n'.join([p.text for p in doc.paragraphs])
+        
+        # Use the new technical keyword extraction that preserves case
         keywords = extract_technical_keywords(job_description)
         missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+
+        # Insert missing keywords into existing Skills section
         doc = insert_keywords_into_sections(doc, missing_keywords)
 
-        # Always export as DOCX
-        out_fd, out_path = tempfile.mkstemp(suffix='.docx')
-        os.close(out_fd)
-        doc.save(out_path)
-        filename = create_export_filename(company_name, job_role, 'docx')
-        return send_file(out_path, as_attachment=True, download_name=filename)
+        # Handle different export formats
+        if export_format == 'txt':
+            # Convert to plain text
+            text_content = docx_to_text(doc)
+            text_buffer = io.BytesIO()
+            text_buffer.write(text_content.encode('utf-8'))
+            text_buffer.seek(0)
+            filename = create_export_filename(company_name, job_role, 'txt')
+            return send_file(
+                text_buffer,
+                as_attachment=True,
+                download_name=filename,
+                mimetype='text/plain'
+            )
+        else:
+            # Default: DOCX format
+            out_fd, out_path = tempfile.mkstemp(suffix='.docx')
+            os.close(out_fd)
+            doc.save(out_path)
+            filename = create_export_filename(company_name, job_role, 'docx')
+            return send_file(out_path, as_attachment=True, download_name=filename)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

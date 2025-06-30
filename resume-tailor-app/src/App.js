@@ -12,6 +12,12 @@ import TermsOfService from './pages/TermsOfService';
 import Contact from './pages/Contact';
 import { Analytics } from '@vercel/analytics/react';
 
+// Import SVG icons
+import { ReactComponent as RocketIcon } from './assets/icons/rocket-lunch.svg';
+import { ReactComponent as ChartIcon } from './assets/icons/chart-line-up.svg';
+import { ReactComponent as BriefcaseIcon } from './assets/icons/briefcase.svg';
+import { ReactComponent as TailrdIcon } from './assets/icons/TailrdIcon.svg';
+
 function App() {
   // Authentication state
   const [user, setUser] = useState(null);
@@ -164,10 +170,12 @@ function App() {
   // File handling
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                 file.type === 'application/pdf' || 
+                 file.type === 'text/plain')) {
       setResumeFile(file);
     } else {
-      toast.error('Please select a valid file (.docx only)');
+      toast.error('Please select a valid file (.docx, .pdf, or .txt)');
     }
   };
 
@@ -185,10 +193,12 @@ function App() {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                 file.type === 'application/pdf' || 
+                 file.type === 'text/plain')) {
       setResumeFile(file);
     } else {
-      toast.error('Please drop a valid file (.docx only)');
+      toast.error('Please drop a valid file (.docx, .pdf, or .txt)');
     }
   };
 
@@ -564,27 +574,27 @@ function App() {
           {/* Left Side - Hero Section */}
           <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
             <div className="max-w-md">
-              <div className={`w-20 h-20 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-8`}>
-                <span className="text-4xl font-bold">T</span>
+              <div className={`w-24 h-24 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-8`}>
+                <TailrdIcon className="w-20 h-20" />
               </div>
               <h1 className={`text-5xl font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>Welcome to Tailrd</h1>
-              <p className={`text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The AI-powered resume optimizer that helps you land your dream job</p>
+              <p className={`text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The smart resume optimizer that helps you land your dream job</p>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
-                    <span className="text-lg">🚀</span>
+                    <RocketIcon className="w-5 h-5" />
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI-powered ATS optimization</span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>ATS-optimized resume enhancement</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
-                    <span className="text-lg">📊</span>
+                    <ChartIcon className="w-5 h-5" />
                   </div>
                   <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Real-time compatibility scoring</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
-                    <span className="text-lg">💼</span>
+                    <BriefcaseIcon className="w-5 h-5" />
                   </div>
                   <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Job application tracking</span>
                 </div>
@@ -597,39 +607,35 @@ function App() {
             <div className={`w-full max-w-md ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl border p-8`}>
               {/* Logo for mobile */}
               <div className="lg:hidden text-center mb-8">
-                <div className={`w-16 h-16 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                  <span className="text-2xl font-bold">T</span>
+                <div className={`w-20 h-20 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                  <TailrdIcon className="w-16 h-16" />
                 </div>
                 <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</h2>
               </div>
 
               {/* Auth Mode Toggle */}
-              <div className="flex mb-8">
-          <button
+              <div className="flex mb-8 rounded-lg p-1">
+                <button
                   onClick={() => setAuthMode('signin')}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
+                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
                     authMode === 'signin'
-                      ? 'bg-gray-900 text-white'
-                      : darkMode 
-                        ? 'text-gray-400 hover:text-white' 
-                        : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-black text-white shadow-sm'
+                      : 'bg-transparent text-black'
                   }`}
                 >
-                  Sign In
+                  Log In
                 </button>
                 <button
                   onClick={() => setAuthMode('signup')}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
+                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
                     authMode === 'signup'
-                      ? 'bg-gray-900 text-white'
-                      : darkMode 
-                        ? 'text-gray-400 hover:text-white' 
-                        : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-black text-white shadow-sm'
+                      : 'bg-transparent text-black'
                   }`}
                 >
                   Sign Up
-          </button>
-        </div>
+                </button>
+              </div>
 
               {/* Verification Message */}
               {verificationSent && (
@@ -643,166 +649,164 @@ function App() {
                       <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                         We've sent a verification link to {email}
                       </p>
-          </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
               )}
 
               {/* Auth Forms */}
-              {authMode === 'signin' ? (
-                <form onSubmit={handleSignIn} className="space-y-6">
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
-                      isLoading
-                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                        : 'bg-gray-900 hover:bg-gray-800 text-white'
-                    }`}
-                  >
-                    {isLoading ? 'Signing In...' : 'Sign In'}
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleSignUp} className="space-y-6">
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Username
-                    </label>
-                    <input 
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Choose a username"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Email Address
+              <div className="relative">
+                <div className={`transition-all duration-500 ease-in-out ${authMode === 'signin' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 absolute inset-0'}`}>
+                  {/* Log In Form */}
+                  <form onSubmit={handleSignIn} className="space-y-6">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Email Address
                       </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Password
-                      </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create a password (min 6 characters)"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                      }`}
-                    />
-                </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Confirm Password
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your password"
-                      required
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
-                      darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
-                    }`}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                    disabled={isLoading}
-                    className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
-                      isLoading
-                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                        : 'bg-gray-900 hover:bg-gray-800 text-white'
-                    }`}
-                  >
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
-                </button>
-              </form>
-              )}
-
-              {/* Dark Mode Toggle */}
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
-                      darkMode 
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                  {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-                  </button>
-                </div>
-                      </div>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        }`}
+                      />
                     </div>
-                  </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        }`}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
+                        isLoading
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-black hover:bg-gray-800 text-white'
+                      }`}
+                    >
+                      {isLoading ? 'Logging In...' : 'Log In'}
+                    </button>
+                  </form>
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out ${authMode === 'signup' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 absolute inset-0'}`}>
+                  {/* Sign Up Form */}
+                  <form onSubmit={handleSignUp} className="space-y-6">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Username
+                      </label>
+                      <input 
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Choose a username"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        }`}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create a password (min 6 characters)"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Confirm Password
+                      </label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your password"
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'
+                        } ${confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500' : ''} ${confirmPassword && password === confirmPassword ? 'border-green-500 focus:border-green-500' : ''}`}
+                      />
+                      {confirmPassword && password !== confirmPassword && (
+                        <p className="text-red-500 text-sm mt-1">Passwords don't match</p>
+                      )}
+                      {confirmPassword && password === confirmPassword && (
+                        <p className="text-green-500 text-sm mt-1">Passwords Match!</p>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${
+                        isLoading
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-black hover:bg-gray-800 text-white'
+                      }`}
+                    >
+                      {isLoading ? 'Creating Account...' : 'Create Account'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
