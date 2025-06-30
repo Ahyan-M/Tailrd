@@ -220,18 +220,26 @@ function App() {
     formData.append("exportFormat", exportFormat);
 
     try {
+      // Add timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-        const data = await response.json();
-        setResult(data);
-        
+      const data = await response.json();
+      setResult(data);
+      
       // Get ATS scores from headers if available
       const originalScore = response.headers.get("X-Original-ATS-Score");
       const optimizedScore = response.headers.get("X-Optimized-ATS-Score");
@@ -244,9 +252,21 @@ function App() {
       toast.success("Resume optimized successfully!");
     } catch (error) {
       console.error("Error optimizing resume:", error);
-      toast.error("Error optimizing resume. Please try again.");
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
+      } else if (error.message.includes('File too large')) {
+        toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
+      } else if (error.message.includes('Job description too long')) {
+        toast.error("Job description is too long. Please keep it under 50KB.");
+      } else if (error.message.includes('Optimization failed')) {
+        toast.error("Optimization failed. Please check your file format and try again.");
+      } else {
+        toast.error("Error optimizing resume. Please try again.");
+      }
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -257,13 +277,22 @@ function App() {
       suggestForm.append("jobDescription", jobDescription);
       
       console.log("Fetching suggestions...");
+      
+      // Add timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+
       const response = await fetch(API_ENDPOINTS.SUGGEST_KEYWORDS, {
         method: "POST",
-        body: suggestForm
+        body: suggestForm,
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
@@ -281,6 +310,18 @@ function App() {
       }
     } catch (error) {
       console.error("Error fetching suggestions:", error);
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        toast.error("Keyword suggestions timed out. Please try again.");
+      } else if (error.message.includes('File too large')) {
+        toast.error("File is too large for keyword suggestions. Please upload a smaller resume file.");
+      } else if (error.message.includes('Job description too long')) {
+        toast.error("Job description is too long for keyword suggestions. Please shorten it.");
+      } else {
+        toast.error("Error fetching keyword suggestions. Please try again.");
+      }
+      
       setSuggestedKeywords([]);
     }
   };
@@ -309,13 +350,21 @@ function App() {
     formData.append("extraKeywords", selectedKeywords.join(", "));
     
     try {
+      // Add timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       
       // Get ATS scores from headers if available
@@ -350,9 +399,21 @@ function App() {
       toast.success("Resume optimized successfully!");
     } catch (error) {
       console.error("Error finalizing resume:", error);
-      toast.error("Error optimizing resume. Please try again.");
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
+      } else if (error.message.includes('File too large')) {
+        toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
+      } else if (error.message.includes('Job description too long')) {
+        toast.error("Job description is too long. Please keep it under 50KB.");
+      } else if (error.message.includes('Finalization failed')) {
+        toast.error("Finalization failed. Please check your file format and try again.");
+      } else {
+        toast.error("Error optimizing resume. Please try again.");
+      }
     } finally {
-    setFinalizing(false);
+      setFinalizing(false);
     }
   };
 

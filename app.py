@@ -8,9 +8,33 @@ import io
 import json
 from docx.shared import Pt
 import string
+import time
+from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
+
+# Add timeout configuration
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['REQUEST_TIMEOUT'] = 30  # 30 seconds timeout
+
+# Timeout decorator
+def timeout_handler(timeout_seconds=30):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = f(*args, **kwargs)
+                if time.time() - start_time > timeout_seconds:
+                    raise Exception("Request timed out")
+                return result
+            except Exception as e:
+                if time.time() - start_time > timeout_seconds:
+                    raise Exception(f"Request timed out after {timeout_seconds} seconds")
+                raise e
+        return wrapper
+    return decorator
 
 # ATS Scoring weights and criteria
 ATS_CRITERIA = {
@@ -36,8 +60,7 @@ TECHNICAL_KEYWORDS = {
         'python', 'java', 'javascript', 'js', 'typescript', 'ts', 'c++', 'c#', 'ruby', 'php', 'swift',
         'kotlin', 'go', 'golang', 'rust', 'scala', 'r', 'matlab', 'sql', 'perl', 'shell', 'bash',
         'dart', 'elixir', 'haskell', 'lua', 'assembly', 'fortran', 'cobol', 'ada', 'groovy', 'clojure',
-        'c', 'f#', 'ocaml', 'erlang', 'julia', 'nim', 'crystal', 'zig', 'v', 'odin', 'pony',
-        'ziglang', 'picolisp', 'red', 'janet'
+        'c', 'f#', 'ocaml', 'erlang', 'julia', 'nim', 'crystal', 'zig', 'v', 'odin', 'pony'
     },
     'web_technologies': {
         'html', 'css', 'sass', 'less', 'react', 'angular', 'vue', 'node.js', 'nodejs', 'express',
@@ -45,22 +68,19 @@ TECHNICAL_KEYWORDS = {
         'next.js', 'nuxt.js', 'svelte', 'sveltekit', 'astro', 'remix', 'gatsby', 'webpack', 'vite',
         'rollup', 'esbuild', 'parcel', 'graphql', 'apollo', 'prisma', 'sequelize', 'typeorm',
         'nestjs', 'fastapi', 'fastify', 'hapi', 'koa', 'web3', 'solidity', 'ethers.js', 'web3.js',
-        'stripe', 'twilio', 'sendgrid', 'mailgun', 'socket.io', 'ws', 'websocket',
-        'htmx', 'alpine.js', 'unocss'
+        'stripe', 'twilio', 'sendgrid', 'mailgun', 'socket.io', 'ws', 'websocket'
     },
     'databases': {
         'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'sqlite', 'sql server', 'dynamodb',
         'cassandra', 'elasticsearch', 'neo4j', 'mariadb', 'cockroachdb', 'timescaledb', 'influxdb',
         'clickhouse', 'snowflake', 'bigquery', 'redshift', 'databricks', 'hive', 'hbase', 'couchdb',
-        'rethinkdb', 'arangodb', 'fauna', 'supabase', 'planetscale', 'firebase', 'appwrite',
-        'duckdb', 'trino', 'yugabyte', 'tidb'
+        'rethinkdb', 'arangodb', 'fauna', 'supabase', 'planetscale', 'firebase', 'appwrite'
     },
     'cloud_platforms': {
         'aws', 'azure', 'gcp', 'google cloud', 'heroku', 'digitalocean', 'firebase',
         'cloudflare', 'vercel', 'netlify', 'alibaba cloud', 'oracle cloud', 'ibm cloud',
         'linode', 'vultr', 'render', 'railway', 'fly.io', 'supabase', 'appwrite', 'hasura',
-        'stripe', 'twilio', 'sendgrid', 'mailgun', 'auth0', 'okta', 'cognito',
-        'render.com', 'backblaze b2'
+        'stripe', 'twilio', 'sendgrid', 'mailgun', 'auth0', 'okta', 'cognito'
     },
     'data_science': {
         'pandas', 'numpy', 'scipy', 'scikit-learn', 'sklearn', 'tensorflow', 'pytorch', 'keras',
@@ -78,9 +98,7 @@ TECHNICAL_KEYWORDS = {
         'circleci', 'github actions', 'gitlab ci', 'travis ci', 'azure devops', 'teamcity',
         'bamboo', 'sonarqube', 'codecov', 'coveralls', 'semaphore', 'appveyor', 'wercker',
         'drone', 'concourse', 'spinnaker', 'argo', 'tekton', 'skaffold', 'tilt', 'lens',
-        'rancher', 'openshift', 'minikube', 'kind', 'k3s', 'microk8s', 'kubectl', 'kustomize',
-        'operator-sdk', 'crossplane', 'pulumi', 'cloudformation', 'serverless',
-        'devcontainers', 'act', 'localstack', 'lazydocker', 'ghcup'
+        'rancher', 'openshift', 'minikube', 'kind', 'k3s', 'microk8s', 'kubectl', 'kustomize'
     }
 }
 
@@ -110,17 +128,6 @@ INDUSTRY_KEYWORDS = {
         'Machine Learning', 'Predictive Modeling', 'Regression', 'Classification', 'A/B Testing',
         # Soft skills
         'Attention to Detail', 'Critical Thinking', 'Storytelling', 'Business Acumen'
-    ],
-    'finance': [
-        # Concepts
-        'Financial Analysis', 'Budgeting', 'Forecasting', 'Variance Analysis', 'Financial Modeling',
-        'Valuation', 'Mergers & Acquisitions', 'Risk Management', 'Portfolio Management', 'Asset Allocation',
-        # Tools
-        'Excel', 'Bloomberg', 'QuickBooks', 'SAP', 'Oracle', 'Power BI', 'Tableau',
-        # Regulations
-        'GAAP', 'IFRS', 'SOX', 'Compliance',
-        # Soft skills
-        'Analytical Skills', 'Attention to Detail', 'Communication', 'Stakeholder Management'
     ]
 }
 
@@ -352,6 +359,7 @@ def add_keywords_with_style(paragraph, keywords):
         run.font.size = Pt(11)
 
 @app.route('/optimize-docx', methods=['POST'])
+@timeout_handler(30)  # 30 second timeout
 def optimize_docx():
     if 'resume' not in request.files or 'jobDescription' not in request.form:
         return jsonify({'error': 'Missing file or job description'}), 400
@@ -362,76 +370,87 @@ def optimize_docx():
     job_role = request.form.get('jobRole', '').strip()
     export_format = request.form.get('exportFormat', 'docx').lower()
 
-    # Save uploaded file to a temp location
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-        resume_file.save(tmp.name)
-        doc = Document(tmp.name)
+    # Add file size validation
+    if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
+        return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
 
-    # Extract all text for keyword matching and ATS scoring
-    full_text = '\n'.join([p.text for p in doc.paragraphs])
-    
-    # Calculate original ATS score
-    original_ats_score = calculate_ats_score(full_text, job_description)
-    
-    # Use the new technical keyword extraction that preserves case
-    keywords = extract_technical_keywords(job_description)
-    missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+    # Add job description length validation
+    if len(job_description) > 50000:  # 50KB limit
+        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
 
-    # Insert missing keywords into existing Skills section
-    doc = insert_keywords_into_sections(doc, missing_keywords)
-    
-    # Get optimized text for ATS scoring
-    optimized_text = '\n'.join([p.text for p in doc.paragraphs])
-    
-    # Calculate optimized ATS score
-    optimized_ats_score = calculate_ats_score(optimized_text, job_description, original_ats_score['total_score'])
+    try:
+        # Save uploaded file to a temp location
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+            resume_file.save(tmp.name)
+            doc = Document(tmp.name)
 
-    # Handle different export formats
-    if export_format == 'txt':
-        # Convert to plain text
-        text_content = docx_to_text(doc)
-        text_buffer = io.BytesIO()
-        text_buffer.write(text_content.encode('utf-8'))
-        text_buffer.seek(0)
-        filename = create_export_filename(company_name, job_role, 'txt')
-        response = send_file(
-            text_buffer,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='text/plain'
-        )
-    else:
-        # Default: DOCX format
-        out_fd, out_path = tempfile.mkstemp(suffix='.docx')
-        os.close(out_fd)
-        doc.save(out_path)
-        filename = create_export_filename(company_name, job_role, 'docx')
-        response = send_file(out_path, as_attachment=True, download_name=filename)
+        # Extract all text for keyword matching and ATS scoring
+        full_text = '\n'.join([p.text for p in doc.paragraphs])
+        
+        # Calculate original ATS score
+        original_ats_score = calculate_ats_score(full_text, job_description)
+        
+        # Use the new technical keyword extraction that preserves case
+        keywords = extract_technical_keywords(job_description)
+        missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
 
-    # Add ATS scores to response headers for frontend access
-    response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
-    response.headers['X-Optimized-ATS-Score'] = str(optimized_ats_score['total_score'])
-    response.headers['X-ATS-Improvement'] = str(optimized_ats_score['improvement'])
-    
-    # Always return JSON with detailed ATS scores and file info
-    return jsonify({
-        'original_ats_score': original_ats_score,
-        'optimized_ats_score': optimized_ats_score,
-        'keywords': list(keywords.keys()) if isinstance(keywords, dict) else keywords,
-        'missing_keywords': missing_keywords,
-        'keywords_added': len(missing_keywords),
-        'resumeText': optimized_text[:1000] + "..." if len(optimized_text) > 1000 else optimized_text,
-        'download_ready': True,
-        'message': f'Resume optimized successfully! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
-        'debug_info': {
-            'original_text_length': len(full_text),
-            'optimized_text_length': len(optimized_text),
-            'text_added': len(optimized_text) - len(full_text),
-            'original_keyword_score': original_ats_score['keyword_score'],
-            'optimized_keyword_score': optimized_ats_score['keyword_score'],
-            'keyword_improvement': optimized_ats_score['keyword_score'] - original_ats_score['keyword_score']
-        }
-    })
+        # Insert missing keywords into existing Skills section
+        doc = insert_keywords_into_sections(doc, missing_keywords)
+        
+        # Get optimized text for ATS scoring
+        optimized_text = '\n'.join([p.text for p in doc.paragraphs])
+        
+        # Calculate optimized ATS score
+        optimized_ats_score = calculate_ats_score(optimized_text, job_description, original_ats_score['total_score'])
+
+        # Handle different export formats
+        if export_format == 'txt':
+            # Convert to plain text
+            text_content = docx_to_text(doc)
+            text_buffer = io.BytesIO()
+            text_buffer.write(text_content.encode('utf-8'))
+            text_buffer.seek(0)
+            filename = create_export_filename(company_name, job_role, 'txt')
+            response = send_file(
+                text_buffer,
+                as_attachment=True,
+                download_name=filename,
+                mimetype='text/plain'
+            )
+        else:
+            # Default: DOCX format
+            out_fd, out_path = tempfile.mkstemp(suffix='.docx')
+            os.close(out_fd)
+            doc.save(out_path)
+            filename = create_export_filename(company_name, job_role, 'docx')
+            response = send_file(out_path, as_attachment=True, download_name=filename)
+
+        # Add ATS scores to response headers for frontend access
+        response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
+        response.headers['X-Optimized-ATS-Score'] = str(optimized_ats_score['total_score'])
+        response.headers['X-ATS-Improvement'] = str(optimized_ats_score['improvement'])
+        
+        # Always return JSON with detailed ATS scores and file info
+        return jsonify({
+            'original_ats_score': original_ats_score,
+            'optimized_ats_score': optimized_ats_score,
+            'keywords': list(keywords.keys()) if isinstance(keywords, dict) else keywords,
+            'missing_keywords': missing_keywords,
+            'keywords_added': len(missing_keywords),
+            'resumeText': optimized_text[:1000] + "..." if len(optimized_text) > 1000 else optimized_text,
+            'download_ready': True,
+            'message': f'Resume optimized successfully! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
+            'debug_info': {
+                'original_text_length': len(full_text),
+                'optimized_text_length': len(optimized_text),
+                'text_added': len(optimized_text) - len(full_text),
+                'original_keyword_score': original_ats_score['keyword_score'],
+                'optimized_keyword_score': optimized_ats_score['keyword_score'],
+                'keyword_improvement': optimized_ats_score['keyword_score'] - original_ats_score['keyword_score']
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': f'Optimization failed: {str(e)}'}), 500
 
 @app.route('/export-formats', methods=['GET'])
 def get_export_formats():
@@ -468,8 +487,7 @@ def infer_industry(job_description):
     # Also check for common industry terms
     industry_indicators = {
         'software_engineering': ['software', 'developer', 'programmer', 'engineer', 'coding', 'programming', 'web', 'mobile', 'app', 'frontend', 'backend', 'fullstack'],
-        'data_analytics': ['data', 'analytics', 'analyst', 'business intelligence', 'bi', 'reporting', 'dashboard', 'kpi', 'metrics', 'statistics'],
-        'finance': ['finance', 'financial', 'accounting', 'budget', 'forecast', 'investment', 'banking', 'trading', 'risk', 'compliance']
+        'data_analytics': ['data', 'analytics', 'analyst', 'business intelligence', 'bi', 'reporting', 'dashboard', 'kpi', 'metrics', 'statistics']
     }
     
     for industry, indicators in industry_indicators.items():
@@ -485,7 +503,7 @@ def infer_industry(job_description):
 def score_keywords(job_description, industry):
     """Return a dict of keyword: score, based on frequency and industry importance."""
     text = job_description.lower()
-    industry_keywords = [kw.lower() for kw in INDUSTRY_KEYWORDS[industry]]
+    industry_keywords = [kw.lower() for kw in INDUSTRY_KEYWORDS.get(industry, [])]
     scores = {}
     for kw in set(re.findall(r'\b\w[\w\+\#\.\-]*\b', job_description, re.IGNORECASE)):
         freq = text.count(kw.lower())
@@ -494,8 +512,12 @@ def score_keywords(job_description, industry):
             scores[kw] = freq * importance
     return scores
 
-# --- Suggest up to 6 high-impact, industry-specific keywords not already in the resume or job description ---
-def suggest_extra_keywords(resume_text, job_description, industry, max_suggestions=6):
+# --- Suggest up to 4 high-impact, industry-specific keywords not already in the resume or job description ---
+def suggest_extra_keywords(resume_text, job_description, industry, max_suggestions=4):
+    # Add timeout protection
+    start_time = time.time()
+    max_processing_time = 5  # 5 seconds max (reduced from 10)
+    
     # Normalize resume words: lowercase, remove punctuation
     resume_words = set([
         w.lower().strip(string.punctuation)
@@ -508,32 +530,47 @@ def suggest_extra_keywords(resume_text, job_description, industry, max_suggestio
         for w in re.findall(r'\b\w[\w\+\#\.\-]*\b', job_description)
     ])
     
-    # Use comprehensive technical keywords with proper case
-    all_technical_keywords = []
-    for category, keywords in TECHNICAL_KEYWORDS.items():
-        all_technical_keywords.extend(keywords)
-    
-    # Also include industry-specific keywords (these already have proper case)
+    # Use a more efficient approach - focus on most common keywords
+    # Start with industry-specific keywords first (higher priority)
     industry_keywords = INDUSTRY_KEYWORDS.get(industry, [])
-    all_keywords = all_technical_keywords + industry_keywords
+    
+    # Take only the most common technical keywords from priority categories
+    common_technical_keywords = []
+    priority_categories = ['programming_languages', 'web_technologies', 'databases', 'cloud_platforms']
+    
+    # Most common keywords from each category (top 10-15 most relevant)
+    common_keywords_by_category = {
+        'programming_languages': ['python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin', 'go', 'rust', 'scala', 'r', 'sql'],
+        'web_technologies': ['html', 'css', 'react', 'angular', 'vue', 'node.js', 'express', 'django', 'flask', 'spring', 'bootstrap', 'tailwind', 'graphql', 'rest'],
+        'databases': ['mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'sqlite', 'sql server', 'dynamodb', 'elasticsearch', 'neo4j', 'firebase'],
+        'cloud_platforms': ['aws', 'azure', 'gcp', 'heroku', 'digitalocean', 'firebase', 'vercel', 'netlify', 'supabase']
+    }
+    
+    for category in priority_categories:
+        if category in common_keywords_by_category:
+            common_technical_keywords.extend(common_keywords_by_category[category])
+    
+    # Combine keywords but limit total size
+    all_keywords = industry_keywords + common_technical_keywords[:50]  # Limit to 50 total
     
     # Remove duplicates and filter out keywords already in resume OR job description
     suggestions = []
     seen = set()
     
     for kw in all_keywords:
+        # Check timeout
+        if time.time() - start_time > max_processing_time:
+            break
+            
         kw_lower = kw.lower().strip(string.punctuation)
         # Only suggest keywords that are NOT in resume AND NOT in job description
         if kw_lower not in resume_words and kw_lower not in job_words and kw_lower not in seen:
-            # Use proper case for display - capitalize first letter and handle special cases
-            if kw.lower() in ['python', 'java', 'javascript', 'typescript', 'react', 'angular', 'vue', 'node.js', 'django', 'flask', 'spring', 'express', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'git', 'sql', 'mongodb', 'redis', 'mysql', 'postgresql', 'html', 'css', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'r', 'matlab', 'tensorflow', 'pytorch', 'pandas', 'numpy', 'scikit-learn', 'tableau', 'power bi', 'jupyter', 'spark', 'hadoop', 'elasticsearch', 'neo4j', 'cassandra', 'dynamodb', 'firebase', 'heroku', 'vercel', 'netlify', 'github', 'gitlab', 'bitbucket', 'jenkins', 'circleci', 'travis ci', 'terraform', 'ansible', 'vagrant', 'postman', 'swagger', 'graphql', 'rest api', 'microservices', 'agile', 'scrum', 'devops', 'ci/cd', 'api development', 'database design', 'system architecture', 'performance optimization', 'security', 'testing', 'code review', 'version control', 'linux', 'shell scripting', 'cloud computing', 'machine learning', 'artificial intelligence', 'data science', 'big data', 'etl', 'data visualization', 'statistical analysis', 'predictive modeling', 'regression', 'classification', 'clustering', 'nlp', 'computer vision', 'deep learning', 'neural networks', 'natural language processing', 'sentiment analysis', 'object detection', 'image segmentation', 'text classification', 'named entity recognition', 'machine translation', 'question answering', 'text summarization', 'recommendation systems', 'anomaly detection', 'time series analysis', 'a/b testing', 'hypothesis testing', 'statistical modeling', 'data mining', 'feature engineering', 'model validation', 'cross-validation', 'hyperparameter tuning', 'ensemble learning', 'transfer learning', 'reinforcement learning', 'unsupervised learning', 'supervised learning', 'semi-supervised learning', 'federated learning', 'active learning', 'online learning', 'batch learning', 'incremental learning', 'meta-learning', 'multi-task learning', 'few-shot learning', 'zero-shot learning', 'one-shot learning', 'curriculum learning', 'self-supervised learning', 'contrastive learning', 'generative adversarial networks', 'variational autoencoders', 'attention mechanisms', 'backpropagation', 'gradient descent', 'stochastic gradient descent', 'learning rate scheduling', 'early stopping', 'batch normalization', 'weight decay', 'data augmentation', 'k-fold cross-validation', 'stratified k-fold', 'leave-one-out', 'precision', 'recall', 'f1-score', 'roc curve', 'confusion matrix', 'mean squared error', 'mean absolute error', 'r-squared', 'adjusted r-squared', 'log loss', 'hinge loss', 'cross-entropy loss', 'kullback-leibler divergence', 'jensen-shannon divergence', 'wasserstein distance', 'earth mover\'s distance', 'hausdorff distance', 'chamfer distance', 'dice coefficient', 'bleu score', 'rouge score', 'meteor score', 'cider score', 'spice score', 'bert score', 'mover score', 'word mover\'s distance', 'cosine similarity', 'euclidean distance', 'manhattan distance', 'chebyshev distance', 'minkowski distance', 'mahalanobis distance', 'jaccard similarity', 'dice similarity', 'overlap coefficient', 'sorensen-dice coefficient', 'tversky index', 'tanimoto coefficient', 'pearson correlation', 'spearman correlation', 'kendall correlation', 'mutual information', 'cross-entropy', 'kl divergence', 'js divergence']:
-                # Use proper case for common technical terms
-                display_kw = kw.title()
-            elif kw.lower() in ['ci/cd', 'rest api', 'api development', 'database design', 'system architecture', 'performance optimization', 'version control', 'shell scripting', 'cloud computing', 'machine learning', 'artificial intelligence', 'data science', 'big data', 'data visualization', 'statistical analysis', 'predictive modeling', 'natural language processing', 'sentiment analysis', 'object detection', 'image segmentation', 'text classification', 'named entity recognition', 'machine translation', 'question answering', 'text summarization', 'recommendation systems', 'anomaly detection', 'time series analysis', 'a/b testing', 'hypothesis testing', 'statistical modeling', 'data mining', 'feature engineering', 'model validation', 'cross-validation', 'hyperparameter tuning', 'ensemble learning', 'transfer learning', 'reinforcement learning', 'unsupervised learning', 'supervised learning', 'semi-supervised learning', 'federated learning', 'active learning', 'online learning', 'batch learning', 'incremental learning', 'meta-learning', 'multi-task learning', 'few-shot learning', 'zero-shot learning', 'one-shot learning', 'curriculum learning', 'self-supervised learning', 'contrastive learning', 'generative adversarial networks', 'variational autoencoders', 'attention mechanisms', 'backpropagation', 'gradient descent', 'stochastic gradient descent', 'learning rate scheduling', 'early stopping', 'batch normalization', 'weight decay', 'data augmentation', 'k-fold cross-validation', 'stratified k-fold', 'leave-one-out', 'precision', 'recall', 'f1-score', 'roc curve', 'confusion matrix', 'mean squared error', 'mean absolute error', 'r-squared', 'adjusted r-squared', 'log loss', 'hinge loss', 'cross-entropy loss', 'kullback-leibler divergence', 'jensen-shannon divergence', 'wasserstein distance', 'earth mover\'s distance', 'hausdorff distance', 'chamfer distance', 'dice coefficient', 'bleu score', 'rouge score', 'meteor score', 'cider score', 'spice score', 'bert score', 'mover score', 'word mover\'s distance', 'cosine similarity', 'euclidean distance', 'manhattan distance', 'chebyshev distance', 'minkowski distance', 'mahalanobis distance', 'jaccard similarity', 'dice similarity', 'overlap coefficient', 'sorensen-dice coefficient', 'tversky index', 'tanimoto coefficient', 'pearson correlation', 'spearman correlation', 'kendall correlation', 'mutual information', 'cross-entropy', 'kl divergence', 'js divergence']:
-                # Use proper case for multi-word terms
+            # Simplified case handling
+            if ' ' in kw:
+                # Multi-word terms
                 display_kw = ' '.join(word.title() for word in kw.split())
             else:
-                # For other terms, just capitalize first letter
+                # Single word terms
                 display_kw = kw.title()
             
             suggestions.append(display_kw)
@@ -541,8 +578,8 @@ def suggest_extra_keywords(resume_text, job_description, industry, max_suggestio
             if len(suggestions) >= max_suggestions:
                 break
     
-    # If we don't have enough suggestions, add some common technical terms with proper case
-    if len(suggestions) < max_suggestions:
+    # If we don't have enough suggestions, add some common technical terms
+    if len(suggestions) < max_suggestions and time.time() - start_time < max_processing_time:
         common_tech_terms = [
             'Git', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'CI/CD', 'REST API', 'GraphQL',
             'Microservices', 'Agile', 'Scrum', 'DevOps', 'Cloud Computing', 'API Development',
@@ -551,6 +588,9 @@ def suggest_extra_keywords(resume_text, job_description, industry, max_suggestio
         ]
         
         for term in common_tech_terms:
+            if time.time() - start_time > max_processing_time:
+                break
+                
             term_lower = term.lower().strip(string.punctuation)
             if term_lower not in resume_words and term_lower not in job_words and term_lower not in seen:
                 suggestions.append(term)
@@ -561,38 +601,52 @@ def suggest_extra_keywords(resume_text, job_description, industry, max_suggestio
     return suggestions[:max_suggestions]
 
 @app.route('/suggest-keywords', methods=['POST'])
+@timeout_handler(15)  # 15 second timeout
 def suggest_keywords():
     if 'resume' not in request.files or 'jobDescription' not in request.form:
         return jsonify({'error': 'Missing file or job description'}), 400
     resume_file = request.files['resume']
     job_description = request.form['jobDescription']
-    # Save uploaded file to a temp location
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-        resume_file.save(tmp.name)
-        doc = Document(tmp.name)
-    resume_text = '\n'.join([p.text for p in doc.paragraphs])
-    industry = infer_industry(job_description)
-    suggestions = suggest_extra_keywords(resume_text, job_description, industry)
     
-    # Add debug information
-    resume_words = set([
-        w.lower().strip(string.punctuation)
-        for w in re.findall(r'\b\w[\w\+\#\.\-]*\b', resume_text)
-    ])
+    # Add file size validation
+    if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
+        return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
+
+    # Add job description length validation
+    if len(job_description) > 50000:  # 50KB limit
+        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
     
-    return jsonify({
-        'industry': industry,
-        'suggested_keywords': suggestions,
-        'debug_info': {
-            'resume_text_length': len(resume_text),
-            'resume_words_count': len(resume_words),
-            'suggestions_count': len(suggestions),
-            'industry_keywords_available': len(INDUSTRY_KEYWORDS.get(industry, [])),
-            'technical_keywords_total': sum(len(keywords) for keywords in TECHNICAL_KEYWORDS.values())
-        }
-    })
+    try:
+        # Save uploaded file to a temp location
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+            resume_file.save(tmp.name)
+            doc = Document(tmp.name)
+        resume_text = '\n'.join([p.text for p in doc.paragraphs])
+        industry = infer_industry(job_description)
+        suggestions = suggest_extra_keywords(resume_text, job_description, industry)
+        
+        # Add debug information
+        resume_words = set([
+            w.lower().strip(string.punctuation)
+            for w in re.findall(r'\b\w[\w\+\#\.\-]*\b', resume_text)
+        ])
+        
+        return jsonify({
+            'industry': industry,
+            'suggested_keywords': suggestions,
+            'debug_info': {
+                'resume_text_length': len(resume_text),
+                'resume_words_count': len(resume_words),
+                'suggestions_count': len(suggestions),
+                'industry_keywords_available': len(INDUSTRY_KEYWORDS.get(industry, [])),
+                'technical_keywords_total': sum(len(keywords) for keywords in TECHNICAL_KEYWORDS.values())
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': f'Keyword suggestion failed: {str(e)}'}), 500
 
 @app.route('/finalize-resume', methods=['POST'])
+@timeout_handler(30)  # 30 second timeout
 def finalize_resume():
     if 'resume' not in request.files or 'jobDescription' not in request.form or 'extraKeywords' not in request.form:
         return jsonify({'error': 'Missing file, job description, or extra keywords'}), 400
@@ -603,58 +657,69 @@ def finalize_resume():
     job_role = request.form.get('jobRole', '').strip()
     export_format = request.form.get('exportFormat', 'docx').lower()
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-        resume_file.save(tmp.name)
-        doc = Document(tmp.name)
+    # Add file size validation
+    if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
+        return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 400
 
-    full_text = '\n'.join([p.text for p in doc.paragraphs])
-    
-    # Calculate original ATS score
-    original_ats_score = calculate_ats_score(full_text, job_description)
-    
-    job_keywords = extract_technical_keywords(job_description)
-    missing_job_keywords = [kw for kw in job_keywords if kw.lower() not in full_text.lower()]
-    extra_keywords_list = [s.strip() for s in re.split(r'[;,/]|\\band\\b|\\&', extra_keywords) if s.strip()]
-    all_keywords = missing_job_keywords + extra_keywords_list
-    unique_keywords = []
-    seen = set()
-    for kw in all_keywords:
-        if kw.lower() not in seen:
-            unique_keywords.append(kw)
-            seen.add(kw.lower())
-    doc = insert_keywords_into_sections(doc, unique_keywords)
-    
-    # Get final optimized text for ATS scoring
-    final_text = '\n'.join([p.text for p in doc.paragraphs])
-    
-    # Calculate final optimized ATS score
-    final_ats_score = calculate_ats_score(final_text, job_description, original_ats_score['total_score'])
+    # Add job description length validation
+    if len(job_description) > 50000:  # 50KB limit
+        return jsonify({'error': 'Job description too long. Please keep it under 50KB.'}), 400
 
-    if export_format == 'txt':
-        text_content = docx_to_text(doc)
-        text_buffer = io.BytesIO()
-        text_buffer.write(text_content.encode('utf-8'))
-        text_buffer.seek(0)
-        filename = create_export_filename(company_name, job_role, 'txt')
-        response = send_file(
-            text_buffer,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='text/plain'
-        )
-    else:
-        out_fd, out_path = tempfile.mkstemp(suffix='.docx')
-        os.close(out_fd)
-        doc.save(out_path)
-        filename = create_export_filename(company_name, job_role, 'docx')
-        response = send_file(out_path, as_attachment=True, download_name=filename)
-    
-    # Add ATS scores to response headers
-    response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
-    response.headers['X-Optimized-ATS-Score'] = str(final_ats_score['total_score'])
-    response.headers['X-ATS-Improvement'] = str(final_ats_score['improvement'])
-    
-    return response
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+            resume_file.save(tmp.name)
+            doc = Document(tmp.name)
+
+        full_text = '\n'.join([p.text for p in doc.paragraphs])
+        
+        # Calculate original ATS score
+        original_ats_score = calculate_ats_score(full_text, job_description)
+        
+        job_keywords = extract_technical_keywords(job_description)
+        missing_job_keywords = [kw for kw in job_keywords if kw.lower() not in full_text.lower()]
+        extra_keywords_list = [s.strip() for s in re.split(r'[;,/]|\\band\\b|\\&', extra_keywords) if s.strip()]
+        all_keywords = missing_job_keywords + extra_keywords_list
+        unique_keywords = []
+        seen = set()
+        for kw in all_keywords:
+            if kw.lower() not in seen:
+                unique_keywords.append(kw)
+                seen.add(kw.lower())
+        doc = insert_keywords_into_sections(doc, unique_keywords)
+        
+        # Get final optimized text for ATS scoring
+        final_text = '\n'.join([p.text for p in doc.paragraphs])
+        
+        # Calculate final optimized ATS score
+        final_ats_score = calculate_ats_score(final_text, job_description, original_ats_score['total_score'])
+
+        if export_format == 'txt':
+            text_content = docx_to_text(doc)
+            text_buffer = io.BytesIO()
+            text_buffer.write(text_content.encode('utf-8'))
+            text_buffer.seek(0)
+            filename = create_export_filename(company_name, job_role, 'txt')
+            response = send_file(
+                text_buffer,
+                as_attachment=True,
+                download_name=filename,
+                mimetype='text/plain'
+            )
+        else:
+            out_fd, out_path = tempfile.mkstemp(suffix='.docx')
+            os.close(out_fd)
+            doc.save(out_path)
+            filename = create_export_filename(company_name, job_role, 'docx')
+            response = send_file(out_path, as_attachment=True, download_name=filename)
+        
+        # Add ATS scores to response headers
+        response.headers['X-Original-ATS-Score'] = str(original_ats_score['total_score'])
+        response.headers['X-Optimized-ATS-Score'] = str(final_ats_score['total_score'])
+        response.headers['X-ATS-Improvement'] = str(final_ats_score['improvement'])
+        
+        return response
+    except Exception as e:
+        return jsonify({'error': f'Finalization failed: {str(e)}'}), 500
 
 def calculate_ats_score(resume_text, job_description, original_score=None):
     """
