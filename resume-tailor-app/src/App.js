@@ -242,17 +242,18 @@ function App() {
     formData.append("exportFormat", exportFormat);
 
     try {
+      // Add timeout to the fetch request
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-      
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData,
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -299,6 +300,7 @@ function App() {
       
       console.log("Fetching suggestions...");
       
+      // Add timeout to the fetch request
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
 
@@ -370,8 +372,9 @@ function App() {
     formData.append("extraKeywords", selectedKeywords.join(", "));
     
     try {
+      // Add timeout to the fetch request
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
 
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
@@ -472,32 +475,7 @@ function App() {
     }
   };
 
-  // Health check function to test backend connectivity
-  const checkBackendHealth = async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const response = await fetch(API_ENDPOINTS.HEALTH_CHECK, {
-        method: "GET",
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        return data.status === 'healthy';
-      }
-      return false;
-    } catch (error) {
-      console.error('Health check failed:', error);
-      return false;
-    }
-  };
-
   const handleSimpleOptimize = async () => {
-    console.log('Starting resume optimization...');
     setFinalizing(true);
     setOptimizedAtsScore(null);
     setOriginalAtsScore(null);
@@ -510,153 +488,49 @@ function App() {
     formData.append("jobRole", jobRole);
     formData.append("exportFormat", exportFormat);
     
-    console.log('Form data prepared:', {
-      fileName: resumeFile.name,
-      fileSize: resumeFile.size,
-      jobDescriptionLength: jobDescription.length,
-      companyName,
-      jobRole
-    });
-    
-    const maxRetries = 2;
-    let lastError = null;
-    
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      // Check backend health before attempting optimization
-      if (attempt === 0) {
-        const isHealthy = await checkBackendHealth();
-        if (!isHealthy) {
-          toast.error("Backend service is currently unavailable. Please try again later.");
-          setOptimizedAtsScore({
-            total_score: 70,
-            keyword_score: 75,
-            formatting_score: 80,
-            content_score: 70,
-            structure_score: 75,
-            length_score: 80
-          });
-          setOriginalAtsScore({ total_score: 65 });
-          setAtsImprovement(5);
-          return;
-        }
+    try {
+      const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
+        method: "POST",
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      const data = await response.json();
+      
+      // Use the real ATS scores from the backend
+      if (data.original_ats_score && data.optimized_ats_score) {
+        setOriginalAtsScore(data.original_ats_score);
+        setOptimizedAtsScore(data.optimized_ats_score);
+        setAtsImprovement(data.optimized_ats_score.improvement || 0);
         
-        const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
-          method: "POST",
-          body: formData,
-          signal: controller.signal
-        });
+        toast.success(data.message || "Resume optimized successfully!");
+      } else {
+        // Fallback to mock scores if backend doesn't return proper data
+        const mockAtsScore = {
+          total_score: 85,
+          keyword_score: 90,
+          formatting_score: 85,
+          content_score: 80,
+          structure_score: 85,
+          length_score: 90
+        };
         
-        clearTimeout(timeoutId);
+        setOptimizedAtsScore(mockAtsScore);
+        setOriginalAtsScore({ total_score: 75 });
+        setAtsImprovement(10);
         
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `HTTP error! status: ${response.status}`;
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.error || errorMessage;
-          } catch (e) {
-            // If we can't parse JSON, use the raw text
-            if (errorText) {
-              errorMessage = errorText;
-            }
-          }
-          throw new Error(errorMessage);
-        }
-        
-        const data = await response.json();
-        
-        // Use the real ATS scores from the backend
-        if (data.original_ats_score && data.optimized_ats_score) {
-          console.log('Optimization successful with real ATS scores:', data);
-          setOriginalAtsScore(data.original_ats_score);
-          setOptimizedAtsScore(data.optimized_ats_score);
-          setAtsImprovement(data.optimized_ats_score.improvement || 0);
-          
-          toast.success(data.message || "Resume optimized successfully!");
-        } else {
-          // Fallback to mock scores if backend doesn't return proper data
-          console.log('Using fallback mock scores - backend response:', data);
-          const mockAtsScore = {
-            total_score: 85,
-            keyword_score: 90,
-            formatting_score: 85,
-            content_score: 80,
-            structure_score: 85,
-            length_score: 90
-          };
-          
-          setOptimizedAtsScore(mockAtsScore);
-          setOriginalAtsScore({ total_score: 75 });
-          setAtsImprovement(10);
-          
-          toast.success("Resume optimized successfully!");
-        }
-        
-        // Success - break out of retry loop
-        return;
-        
-      } catch (error) {
-        lastError = error;
-        console.error(`Optimization attempt ${attempt + 1} failed:`, error);
-        
-        // If this is not the last attempt, wait a bit before retrying
-        if (attempt < maxRetries) {
-          const isNetworkError = error.name === 'AbortError' || 
-                                error.message.includes('network') || 
-                                error.message.includes('fetch') ||
-                                error.message.includes('timeout');
-          
-          if (isNetworkError) {
-            toast.info(`Attempt ${attempt + 1} failed. Retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-            continue;
-          } else {
-            // For non-network errors, don't retry
-            break;
-          }
-        }
+        toast.success("Resume optimized successfully!");
       }
+    } catch (error) {
+      console.error("Error optimizing resume:", error);
+      toast.error("Error optimizing resume. Please try again.");
+    } finally {
+      setFinalizing(false);
     }
-    
-    // If we get here, all attempts failed
-    console.error("All optimization attempts failed:", lastError);
-    
-    // Provide more specific error messages
-    let errorMessage = "Error optimizing resume. Please try again.";
-    if (lastError.name === 'AbortError' || lastError.message.includes("timeout") || lastError.message.includes("timed out")) {
-      errorMessage = "Optimization timed out. Please try again with a shorter job description.";
-    } else if (lastError.message.includes("File too large")) {
-      errorMessage = "Resume file is too large. Please use a smaller file (max 16MB).";
-    } else if (lastError.message.includes("Job description too long")) {
-      errorMessage = "Job description is too long. Please keep it under 750 words.";
-    } else if (lastError.message.includes("Missing file")) {
-      errorMessage = "Please upload a resume file.";
-    } else if (lastError.message.includes("network") || lastError.message.includes("fetch")) {
-      errorMessage = "Network error. Please check your connection and try again.";
-    }
-    
-    toast.error(errorMessage);
-    
-    // Set a fallback score to prevent UI from being stuck
-    const fallbackScore = {
-      total_score: 70,
-      keyword_score: 75,
-      formatting_score: 80,
-      content_score: 70,
-      structure_score: 75,
-      length_score: 80
-    };
-    setOptimizedAtsScore(fallbackScore);
-    setOriginalAtsScore({ total_score: 65 });
-    setAtsImprovement(5);
-  }
-  
-  setFinalizing(false);
+  };
 
   // Job Application Tracking Functions
   const saveJobApplication = async () => {

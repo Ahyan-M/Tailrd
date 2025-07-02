@@ -451,23 +451,7 @@ def optimize_docx():
             }
         })
     except Exception as e:
-        error_message = str(e)
-        
-        # Provide more specific error messages
-        if "timeout" in error_message.lower():
-            error_message = "Optimization timed out. Please try again with a shorter job description."
-        elif "file" in error_message.lower() and "not found" in error_message.lower():
-            error_message = "Resume file could not be processed. Please ensure it's a valid .docx file."
-        elif "permission" in error_message.lower():
-            error_message = "Permission error processing file. Please try again."
-        elif "memory" in error_message.lower():
-            error_message = "File too large to process. Please use a smaller resume file."
-        elif "format" in error_message.lower():
-            error_message = "Invalid file format. Please upload a .docx file."
-        else:
-            error_message = f"Optimization failed: {error_message}"
-        
-        return jsonify({'error': error_message}), 500
+        return jsonify({'error': f'Optimization failed: {str(e)}'}), 500
 
 @app.route('/export-formats', methods=['GET'])
 def get_export_formats():
@@ -1239,15 +1223,6 @@ def test_suggestions():
             'industry_keywords_available': len(industry_keywords),
             'technical_keywords_total': len(all_technical_keywords)
         }
-    })
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint to verify the service is running"""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': time.time(),
-        'version': '1.0.0'
     })
 
 if __name__ == '__main__':
