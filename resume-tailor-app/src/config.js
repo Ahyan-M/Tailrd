@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   SUGGEST_KEYWORDS: `${API_BASE_URL}/suggest-keywords`,
   FINALIZE_RESUME: `${API_BASE_URL}/finalize-resume`,
   DOWNLOAD_OPTIMIZED: `${API_BASE_URL}/download-optimized`,
+  HEALTH_CHECK: `${API_BASE_URL}/health`,
 };
 
 export default API_BASE_URL; 

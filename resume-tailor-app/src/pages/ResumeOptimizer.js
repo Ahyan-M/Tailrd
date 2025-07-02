@@ -3,6 +3,7 @@ import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import { ReactComponent as DownToLineIcon } from '../assets/icons/down-to-line.svg';
+import { toast } from 'react-toastify';
 
 const ResumeOptimizer = ({
   resumeFile,
@@ -52,6 +53,40 @@ const ResumeOptimizer = ({
   const canProceedToStep4 = atsScores;
 
   const handleOptimize = async () => {
+    // Validate required fields
+    if (!resumeFile) {
+      toast.error("Please upload a resume file first.");
+      return;
+    }
+    
+    // Check file size (16MB limit)
+    const maxSize = 16 * 1024 * 1024; // 16MB in bytes
+    if (resumeFile.size > maxSize) {
+      toast.error("Resume file is too large. Please use a file smaller than 16MB.");
+      return;
+    }
+    
+    if (!jobDescription.trim()) {
+      toast.error("Please enter a job description.");
+      return;
+    }
+    
+    const wordCount = jobDescription.split(/\s+/).filter(Boolean).length;
+    if (wordCount > 750) {
+      toast.error(`Job description is too long (${wordCount} words). Please keep it under 750 words.`);
+      return;
+    }
+    
+    if (!companyName.trim()) {
+      toast.error("Please enter a company name.");
+      return;
+    }
+    
+    if (!jobRole.trim()) {
+      toast.error("Please enter a job role.");
+      return;
+    }
+    
     setOptimizing(true);
     try {
       // Try the simple optimization first
@@ -62,10 +97,13 @@ const ResumeOptimizer = ({
       console.error('Optimization failed:', error);
       // If simple optimization fails, try the complex one
       try {
+        console.log('Trying fallback optimization...');
         await handleFinalize();
         await fetchSuggestions();
       } catch (finalizeError) {
         console.error('Finalize also failed:', finalizeError);
+        // If both optimizations fail, show a helpful error message
+        // The error handling in handleSimpleOptimize should have already set fallback scores
       }
     } finally {
       setOptimizing(false);
@@ -341,8 +379,20 @@ const ResumeOptimizer = ({
                             : 'bg-gray-900 hover:bg-gray-800 text-white'
                         }`}
                       >
-                        {optimizing || finalizing ? 'Processing...' : 'Optimize Resume'}
+                        {optimizing || finalizing ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Processing...</span>
+                          </div>
+                        ) : (
+                          'Optimize Resume'
+                        )}
                       </button>
+                      {(optimizing || finalizing) && (
+                        <p className={`text-sm mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                          This may take up to 60 seconds...
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
