@@ -242,10 +242,11 @@ function App() {
     formData.append("exportFormat", exportFormat);
 
     try {
-      // Add timeout to the fetch request
+      // Add timeout to the fetch request with better error handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // Reduced to 20 seconds for faster feedback
 
+      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData,
@@ -253,10 +254,22 @@ function App() {
       });
 
       clearTimeout(timeoutId);
+      const processingTime = Date.now() - startTime;
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        
+        // Handle specific error types with helpful messages
+        if (response.status === 503) {
+          throw new Error('Server is busy. Please try again in a moment.');
+        } else if (response.status === 408) {
+          throw new Error('Request timed out. Please try with a smaller file or shorter description.');
+        } else if (response.status === 413) {
+          throw new Error('File is too large or complex. Please try with a smaller file.');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await response.json();
@@ -271,19 +284,28 @@ function App() {
       if (optimizedScore) setOptimizedAtsScore(JSON.parse(optimizedScore));
       if (improvement) setAtsImprovement(parseFloat(improvement));
 
-      toast.success("Resume optimized successfully!");
+      // Show performance metrics if available
+      if (data.performance_metrics) {
+        console.log(`Processing completed in ${processingTime}ms`, data.performance_metrics);
+      }
+
+      toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
     } catch (error) {
       console.error("Error optimizing resume:", error);
       
-      // Handle specific error types
+      // Enhanced error handling with specific messages
       if (error.name === 'AbortError') {
         toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
       } else if (error.message.includes('File too large')) {
         toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
       } else if (error.message.includes('Job description too long')) {
-        toast.error("Job description is too long. Please keep it under 50KB.");
-      } else if (error.message.includes('Optimization failed')) {
-        toast.error("Optimization failed. Please check your file format and try again.");
+        toast.error("Job description is too long. Please keep it under 750 words.");
+      } else if (error.message.includes('Server is busy')) {
+        toast.error("Server is busy. Please try again in a moment.");
+      } else if (error.message.includes('timed out')) {
+        toast.error("Processing took too long. Please try with a smaller file or shorter description.");
+      } else if (error.message.includes('too complex')) {
+        toast.error("File is too complex to process. Please try with a simpler resume format.");
       } else {
         toast.error("Error optimizing resume. Please try again.");
       }
@@ -372,10 +394,11 @@ function App() {
     formData.append("extraKeywords", selectedKeywords.join(", "));
     
     try {
-      // Add timeout to the fetch request
+      // Add timeout to the fetch request with better error handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // Reduced to 20 seconds for faster feedback
 
+      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
         body: formData,
@@ -383,10 +406,22 @@ function App() {
       });
       
       clearTimeout(timeoutId);
+      const processingTime = Date.now() - startTime;
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        
+        // Handle specific error types with helpful messages
+        if (response.status === 503) {
+          throw new Error('Server is busy. Please try again in a moment.');
+        } else if (response.status === 408) {
+          throw new Error('Request timed out. Please try with a smaller file or shorter description.');
+        } else if (response.status === 413) {
+          throw new Error('File is too large or complex. Please try with a smaller file.');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
       
       // Get ATS scores from headers if available
@@ -418,19 +453,23 @@ function App() {
       const url = window.URL.createObjectURL(blob);
       setFinalDownloadUrl(url);
       
-      toast.success("Resume optimized successfully!");
+      toast.success(`Resume finalized successfully in ${Math.round(processingTime/1000)}s!`);
     } catch (error) {
       console.error("Error finalizing resume:", error);
       
-      // Handle specific error types
+      // Enhanced error handling with specific messages
       if (error.name === 'AbortError') {
         toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
       } else if (error.message.includes('File too large')) {
         toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
       } else if (error.message.includes('Job description too long')) {
-        toast.error("Job description is too long. Please keep it under 50KB.");
-      } else if (error.message.includes('Finalization failed')) {
-        toast.error("Finalization failed. Please check your file format and try again.");
+        toast.error("Job description is too long. Please keep it under 750 words.");
+      } else if (error.message.includes('Server is busy')) {
+        toast.error("Server is busy. Please try again in a moment.");
+      } else if (error.message.includes('timed out')) {
+        toast.error("Processing took too long. Please try with a smaller file or shorter description.");
+      } else if (error.message.includes('too complex')) {
+        toast.error("File is too complex to process. Please try with a simpler resume format.");
       } else {
         toast.error("Error optimizing resume. Please try again.");
       }

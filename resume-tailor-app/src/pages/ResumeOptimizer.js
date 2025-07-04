@@ -3,6 +3,7 @@ import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import { ReactComponent as DownToLineIcon } from '../assets/icons/down-to-line.svg';
+import ProgressStepper from '../components/ProgressStepper';
 
 const ResumeOptimizer = ({
   resumeFile,
@@ -32,6 +33,7 @@ const ResumeOptimizer = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [optimizing, setOptimizing] = useState(false);
+  const [processingStage, setProcessingStage] = useState('');
 
   const steps = [
     { id: 1, name: 'Upload Resume', icon: <MemoIcon width={22} height={22} /> },
@@ -53,22 +55,38 @@ const ResumeOptimizer = ({
 
   const handleOptimize = async () => {
     setOptimizing(true);
+    setProcessingStage('uploading');
+    
     try {
+      // Simulate processing stages for better UX
+      setTimeout(() => setProcessingStage('analyzing'), 500);
+      setTimeout(() => setProcessingStage('extracting'), 1500);
+      setTimeout(() => setProcessingStage('scoring'), 2500);
+      setTimeout(() => setProcessingStage('optimizing'), 3500);
+      
       // Try the simple optimization first
       await handleSimpleOptimize();
+      
+      setProcessingStage('finalizing');
       // After optimization, automatically fetch suggestions
       await fetchSuggestions();
+      
+      setCurrentStep(4);
     } catch (error) {
       console.error('Optimization failed:', error);
       // If simple optimization fails, try the complex one
       try {
+        setProcessingStage('optimizing');
         await handleFinalize();
+        setProcessingStage('finalizing');
         await fetchSuggestions();
+        setCurrentStep(4);
       } catch (finalizeError) {
         console.error('Finalize also failed:', finalizeError);
       }
     } finally {
       setOptimizing(false);
+      setProcessingStage('');
     }
   };
 
@@ -81,41 +99,12 @@ const ResumeOptimizer = ({
       </div>
 
       {/* Progress Steps */}
-      <div className="max-w-4xl w-full mx-auto mb-12">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all duration-300 ${
-                  currentStep === step.id
-                    ? darkMode 
-                      ? 'bg-gray-800 text-white' 
-                      : 'bg-blue-100 text-blue-700'
-                    : darkMode 
-                      ? 'bg-gray-700 text-gray-400' 
-                      : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step.icon}
-                </div>
-                <div className={`mt-2 text-sm font-medium text-center ${
-                  currentStep >= step.id
-                    ? darkMode ? 'text-white' : 'text-gray-900'
-                    : darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  {step.name}
-                </div>
-              </div>
-              {index < steps.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-4 ${
-                  currentStep > step.id
-                    ? darkMode ? 'bg-gray-600' : 'bg-gray-400'
-                    : darkMode ? 'bg-gray-700' : 'bg-gray-300'
-                }`} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
+      <ProgressStepper 
+        currentStep={currentStep}
+        steps={steps}
+        loading={optimizing || finalizing}
+        processingStage={processingStage}
+      />
 
       {/* Step Content */}
       <div className="max-w-4xl w-full mx-auto">
