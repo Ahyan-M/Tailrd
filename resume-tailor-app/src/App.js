@@ -57,6 +57,21 @@ function App() {
   // File input ref
   const fileInputRef = useRef(null);
 
+  // Function to reset form state for new optimization
+  const resetFormState = () => {
+    setResumeFile(null);
+    setCompanyName('');
+    setJobRole('');
+    setJobDescription('');
+    setOriginalAtsScore(null);
+    setOptimizedAtsScore(null);
+    setAtsImprovement(0);
+    setSuggestedKeywords([]);
+    setSelectedKeywords([]);
+    setFinalDownloadUrl(null);
+    setResult(null);
+  };
+
   // Authentication state
   const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
   // Separate state for Log In
@@ -899,32 +914,33 @@ function App() {
       )}
 
       {currentPage === 'resume-optimizer' && (
-        <ResumeOptimizer
-          resumeFile={resumeFile}
-          handleFileChange={handleFileChange}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          isDragOver={isDragOver}
-          companyName={companyName}
-          setCompanyName={setCompanyName}
-          jobRole={jobRole}
-          setJobRole={setJobRole}
-          jobDescription={jobDescription}
-          setJobDescription={setJobDescription}
-          atsScores={optimizedAtsScore}
-          suggestedKeywords={suggestedKeywords}
-          selectedKeywords={selectedKeywords}
-          handleKeywordToggle={handleKeywordToggle}
-          fetchSuggestions={fetchSuggestions}
-          handleFinalize={handleFinalize}
-          handleDownload={handleDownload}
-          finalizing={finalizing}
-          finalDownloadUrl={finalDownloadUrl}
-          darkMode={darkMode}
-          saveJobApplication={saveJobApplication}
-          handleSimpleOptimize={handleSimpleOptimize}
-        />
+                    <ResumeOptimizer
+              resumeFile={resumeFile}
+              handleFileChange={handleFileChange}
+              handleDragOver={handleDragOver}
+              handleDragLeave={handleDragLeave}
+              handleDrop={handleDrop}
+              isDragOver={isDragOver}
+              companyName={companyName}
+              setCompanyName={setCompanyName}
+              jobRole={jobRole}
+              setJobRole={setJobRole}
+              jobDescription={jobDescription}
+              setJobDescription={setJobDescription}
+              atsScores={optimizedAtsScore}
+              suggestedKeywords={suggestedKeywords}
+              selectedKeywords={selectedKeywords}
+              handleKeywordToggle={handleKeywordToggle}
+              fetchSuggestions={fetchSuggestions}
+              handleFinalize={handleFinalize}
+              handleDownload={handleDownload}
+              finalizing={finalizing}
+              finalDownloadUrl={finalDownloadUrl}
+              darkMode={darkMode}
+              saveJobApplication={saveJobApplication}
+              handleSimpleOptimize={handleSimpleOptimize}
+              resetFormState={resetFormState}
+            />
       )}
 
       {currentPage === 'job-tracker' && (

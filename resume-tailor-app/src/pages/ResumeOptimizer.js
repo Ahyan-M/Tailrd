@@ -29,7 +29,8 @@ const ResumeOptimizer = ({
   finalDownloadUrl,
   darkMode,
   saveJobApplication,
-  handleSimpleOptimize
+  handleSimpleOptimize,
+  resetFormState
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [optimizing, setOptimizing] = useState(false);
@@ -96,6 +97,26 @@ const ResumeOptimizer = ({
       <div className="text-center mb-12">
         <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
         <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Upload, optimize, and download your ATS-ready resume</p>
+        
+        {/* Start Over Button - only show if we have some data */}
+        {(resumeFile || companyName || jobRole || jobDescription) && (
+          <div className="mt-4">
+            <button
+              onClick={() => {
+                setCurrentStep(1);
+                setOptimizing(false);
+                resetFormState();
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                darkMode 
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+              }`}
+            >
+              Start Over
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Progress Steps */}
@@ -471,6 +492,7 @@ const ResumeOptimizer = ({
                   setCurrentStep(1);
                   // Reset state for new optimization
                   setOptimizing(false);
+                  resetFormState();
                 }}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
                   darkMode 
