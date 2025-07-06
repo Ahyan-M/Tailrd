@@ -27,11 +27,11 @@ CORS(app)
 
 # Performance and reliability configurations
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['REQUEST_TIMEOUT'] = 15  # Reduced to 15 seconds for faster feedback
-app.config['MAX_CONCURRENT_REQUESTS'] = 20  # Increased concurrent capacity
+app.config['REQUEST_TIMEOUT'] = 30  # Back to 30 seconds for reliability
+app.config['MAX_CONCURRENT_REQUESTS'] = 10  # Back to reasonable limit
 app.config['CACHE_TTL'] = 3600  # 1 hour cache TTL
 app.config['START_TIME'] = time.time()  # Track app start time
-app.config['FAST_MODE'] = True  # Enable fast mode optimizations
+app.config['FAST_MODE'] = False  # Disable aggressive fast mode
 
 # Global caches and state
 keyword_cache = {}
@@ -381,71 +381,64 @@ def find_keyword_with_original_case(text, keyword_lower):
         start, end = match.span()
         # Return the original casing from the text
         return text[start:end]
-    return keyword_lower
+    # If not found in text, return the keyword with proper capitalization
+    return keyword_lower.title()
 
 def extract_technical_keywords(text):
     """Legacy function - use extract_technical_keywords_optimized for better performance"""
     return extract_technical_keywords_optimized(text)
 
 def extract_technical_keywords_optimized(text):
-    """Ultra-fast keyword extraction with aggressive optimizations"""
-    if app.config['FAST_MODE']:
-        return extract_technical_keywords_fast(text)
-    
-    cache_key = get_cache_key('keywords', text[:500])  # Reduced cache key size
-    cached_result = get_cached_result(keyword_cache, cache_key, 900)  # 15 min cache
+    """Optimized keyword extraction with caching - restored original functionality"""
+    cache_key = get_cache_key('keywords', text[:1000])  # Back to original cache key size
+    cached_result = get_cached_result(keyword_cache, cache_key, 1800)  # 30 min cache
     if cached_result:
         return cached_result
     
     found_keywords = {}
     
+    # Pre-compile regex patterns for better performance
+    word_boundary_pattern = re.compile(r'\b\w+\b')
+    skill_patterns = [
+        re.compile(r'proficient in\s+([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'experience with\s+([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'knowledge of\s+([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'skills?:\s*([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'technologies?:\s*([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'languages?:\s*([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'frameworks?:\s*([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'tools?:\s*([\w\s,;&]+)', re.IGNORECASE),
+        re.compile(r'platforms?:\s*([\w\s,;&]+)', re.IGNORECASE)
+    ]
+    
     # Fast exact match lookup using set
     text_lower = text.lower()
-    text_words = set(WORD_BOUNDARY_PATTERN.findall(text_lower))
+    text_words = set(word_boundary_pattern.findall(text_lower))
     
-    # Find exact matches first (fastest) - limit to top keywords
-    for keyword in FAST_KEYWORDS:
+    # Find exact matches first (fastest) - use ALL_KEYWORDS for completeness
+    for keyword in ALL_KEYWORDS:
         if keyword in text_words:
             original_case = find_keyword_with_original_case(text, keyword)
             found_keywords[keyword] = original_case
     
-    # Process only the most common skill patterns
-    for pattern in SKILL_PATTERNS:
+    # Process skill patterns (more expensive, so do less)
+    for pattern in skill_patterns[:5]:  # Limit to first 5 patterns for speed
         matches = pattern.finditer(text)
         for match in matches:
             skills_text = match.group(1)
             terms = re.split(r'[;,/]|\band\b|\&|\s+', skills_text)
             for term in terms:
                 term = term.strip()
-                if term and term in FAST_KEYWORDS:
+                if term and term in ALL_KEYWORDS:
                     original_case = find_keyword_with_original_case(text, term)
                     found_keywords[term] = original_case
     
-    # Return top keywords without expensive sorting
-    result = list(found_keywords.values())[:15]  # Limit to 15 keywords
+    # Sort and cache result - restore original sorting
+    sorted_keywords = sorted(found_keywords.values(), 
+                           key=lambda x: text.lower().index(x.lower()))
     
-    set_cached_result(keyword_cache, cache_key, result, 900)
-    return result
-
-def extract_technical_keywords_fast(text):
-    """Ultra-fast keyword extraction for maximum speed"""
-    cache_key = get_cache_key('fast_keywords', text[:300])  # Very small cache key
-    cached_result = get_cached_result(keyword_cache, cache_key, 600)  # 10 min cache
-    if cached_result:
-        return cached_result
-    
-    # Super fast lookup using set intersection
-    text_lower = text.lower()
-    text_words = set(WORD_BOUNDARY_PATTERN.findall(text_lower))
-    
-    # Direct set intersection for maximum speed
-    found_keywords = text_words.intersection(FAST_KEYWORDS)
-    
-    # Convert to list and limit results
-    result = list(found_keywords)[:10]  # Only top 10 keywords
-    
-    set_cached_result(keyword_cache, cache_key, result, 600)
-    return result
+    set_cached_result(keyword_cache, cache_key, sorted_keywords, 1800)
+    return sorted_keywords
 
 def categorize_keywords(keywords):
     """Categorize keywords into different types based on our predefined categories"""
@@ -622,9 +615,9 @@ def add_keywords_with_style(paragraph, keywords):
         run.font.size = Pt(11)
 
 @app.route('/optimize-docx', methods=['POST'])
-@timeout_handler(15)  # Reduced to 15 seconds for faster feedback
+@timeout_handler(30)  # Back to 30 seconds for reliability
 def optimize_docx():
-    """Ultra-fast resume optimization endpoint with maximum performance"""
+    """Optimized resume optimization endpoint - restored original functionality"""
     if 'resume' not in request.files or 'jobDescription' not in request.form:
         return jsonify({'error': 'Missing file or job description'}), 400
 
@@ -634,42 +627,53 @@ def optimize_docx():
     job_role = request.form.get('jobRole', '').strip()
     export_format = request.form.get('exportFormat', 'docx').lower()
 
-    # Quick validation
+    # Enhanced validation with better error messages
     if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
-        return jsonify({'error': 'File too large. Please use a smaller file.'}), 400
+        return jsonify({'error': 'File too large. Maximum size is 16MB. Please compress your resume or use a smaller file.'}), 400
 
     word_count = len(job_description.split())
-    if word_count > 500:  # Reduced limit for speed
-        return jsonify({'error': f'Job description too long. Please keep it under 500 words.'}), 400
+    if word_count > 750:  # Back to original limit
+        return jsonify({'error': f'Job description too long. Please keep it under 750 words. Current: {word_count} words.'}), 400
+
+    # Clean up old temp files
+    cleanup_temp_files()
 
     try:
-        # Ultra-fast optimization without circuit breaker for speed
+        # Use circuit breaker for optimization - restore reliability
+        def optimization_work():
+            # Optimized file processing with memory management
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+                resume_file.save(tmp.name)
+                doc = Document(tmp.name)
+
+            # Extract text more efficiently
+            full_text = '\n'.join([p.text for p in doc.paragraphs])
+            
+            # Use optimized ATS scoring with caching
+            original_ats_score = calculate_ats_score_optimized(full_text, job_description)
+            
+            # Use optimized keyword extraction
+            keywords = extract_technical_keywords_optimized(job_description)
+            missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+
+            # Insert keywords efficiently
+            doc = insert_keywords_into_sections(doc, missing_keywords)
+            
+            # Get optimized text
+            optimized_text = '\n'.join([p.text for p in doc.paragraphs])
+            
+            # Calculate optimized ATS score with caching
+            optimized_ats_score = calculate_ats_score_optimized(optimized_text, job_description, original_ats_score['total_score'])
+            
+            return doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text
+
+        # Execute with retry and circuit breaker - restore reliability
         start_time = time.time()
+        result = retry_with_backoff(
+            lambda: optimization_circuit_breaker.call(optimization_work)
+        )
         
-        # Fast file processing
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-            resume_file.save(tmp.name)
-            doc = Document(tmp.name)
-
-        # Extract text quickly
-        full_text = '\n'.join([p.text for p in doc.paragraphs])
-        
-        # Fast ATS scoring
-        original_ats_score = calculate_ats_score_optimized(full_text, job_description)
-        
-        # Fast keyword extraction
-        keywords = extract_technical_keywords_optimized(job_description)
-        missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
-
-        # Quick keyword insertion
-        doc = insert_keywords_into_sections(doc, missing_keywords)
-        
-        # Get optimized text
-        optimized_text = '\n'.join([p.text for p in doc.paragraphs])
-        
-        # Fast optimized ATS scoring
-        optimized_ats_score = calculate_ats_score_optimized(optimized_text, job_description, original_ats_score['total_score'])
-        
+        doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text = result
         processing_time = time.time() - start_time
 
         # Handle export formats efficiently
@@ -697,23 +701,22 @@ def optimize_docx():
         response.headers['X-Optimized-ATS-Score'] = str(optimized_ats_score['total_score'])
         response.headers['X-ATS-Improvement'] = str(optimized_ats_score['improvement'])
         
-        # Fast response with actual performance metrics
+        # Enhanced response with performance metrics - restored original functionality
         return jsonify({
             'original_ats_score': original_ats_score,
             'optimized_ats_score': optimized_ats_score,
             'keywords': keywords,
             'missing_keywords': missing_keywords,
             'keywords_added': len(missing_keywords),
-            'resumeText': optimized_text[:500] + "..." if len(optimized_text) > 500 else optimized_text,
+            'resumeText': optimized_text[:1000] + "..." if len(optimized_text) > 1000 else optimized_text,
             'download_ready': True,
-            'message': f'Resume optimized in {processing_time:.1f}s! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
+            'message': f'Resume optimized successfully! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
             'performance_metrics': {
                 'processing_time_ms': int(processing_time * 1000),
                 'cache_hits': len([k for k in keyword_cache.keys() if 'keywords' in k]),
                 'text_processed': len(optimized_text),
                 'keywords_found': len(keywords),
-                'keywords_added': len(missing_keywords),
-                'fast_mode': app.config['FAST_MODE']
+                'keywords_added': len(missing_keywords)
             }
         })
     except Exception as e:
@@ -1005,10 +1008,7 @@ def calculate_ats_score(resume_text, job_description, original_score=None):
     return calculate_ats_score_optimized(resume_text, job_description, original_score)
 
 def calculate_ats_score_optimized(resume_text, job_description, original_score=None):
-    """Ultra-fast ATS score calculation with aggressive optimizations"""
-    if app.config['FAST_MODE']:
-        return calculate_ats_score_fast(resume_text, job_description, original_score)
-    
+    """Optimized ATS score calculation with caching - restored original functionality"""
     if not resume_text or not job_description:
         return {
             'total_score': 0,
@@ -1020,19 +1020,24 @@ def calculate_ats_score_optimized(resume_text, job_description, original_score=N
             'improvement': 0
         }
     
-    cache_key = get_cache_key('ats_score', resume_text[:300], job_description[:300])
-    cached_result = get_cached_result(ats_score_cache, cache_key, 900)
+    cache_key = get_cache_key('ats_score', resume_text[:500], job_description[:500])
+    cached_result = get_cached_result(ats_score_cache, cache_key, 1800)
     if cached_result:
         if original_score:
             cached_result['improvement'] = round(cached_result['total_score'] - original_score, 1)
         return cached_result
     
-    # Simplified scoring for speed
-    keyword_score = calculate_keyword_match_score_optimized(resume_text.lower(), job_description.lower())
-    formatting_score = calculate_formatting_score_optimized(resume_text)
-    content_score = calculate_content_quality_score_optimized(resume_text)
+    # Parallel processing of different score components - restore original
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        future_keyword = executor.submit(calculate_keyword_match_score_optimized, resume_text.lower(), job_description.lower())
+        future_formatting = executor.submit(calculate_formatting_score_optimized, resume_text)
+        future_content = executor.submit(calculate_content_quality_score_optimized, resume_text)
+        
+        keyword_score = future_keyword.result()
+        formatting_score = future_formatting.result()
+        content_score = future_content.result()
     
-    # Calculate weighted total score
+    # Calculate weighted total score - restore original weights
     total_score = (
         keyword_score * ATS_CRITERIA['keyword_match'] +
         formatting_score * ATS_CRITERIA['formatting'] +
@@ -1051,61 +1056,7 @@ def calculate_ats_score_optimized(resume_text, job_description, original_score=N
         'improvement': round(total_score - (original_score or 0), 1) if original_score else 0
     }
     
-    set_cached_result(ats_score_cache, cache_key, result, 900)
-    return result
-
-def calculate_ats_score_fast(resume_text, job_description, original_score=None):
-    """Ultra-fast ATS score calculation for maximum speed"""
-    if not resume_text or not job_description:
-        return {
-            'total_score': 75,  # Default reasonable score
-            'keyword_score': 70,
-            'formatting_score': 80,
-            'content_score': 75,
-            'structure_score': 85,
-            'length_score': 90,
-            'improvement': 0
-        }
-    
-    cache_key = get_cache_key('fast_ats', resume_text[:200], job_description[:200])
-    cached_result = get_cached_result(ats_score_cache, cache_key, 600)
-    if cached_result:
-        if original_score:
-            cached_result['improvement'] = round(cached_result['total_score'] - original_score, 1)
-        return cached_result
-    
-    # Super fast scoring - just keyword matching
-    resume_lower = resume_text.lower()
-    job_lower = job_description.lower()
-    
-    # Quick keyword count
-    resume_words = set(WORD_BOUNDARY_PATTERN.findall(resume_lower))
-    job_words = set(WORD_BOUNDARY_PATTERN.findall(job_lower))
-    
-    # Fast intersection
-    common_words = resume_words.intersection(job_words)
-    keyword_score = min(100, len(common_words) * 10)  # Simple scoring
-    
-    # Quick formatting check
-    formatting_score = 85 if 'skills' in resume_lower else 75
-    
-    # Quick content check
-    action_verbs = {'developed', 'implemented', 'managed', 'created', 'designed', 'built'}
-    content_score = 80 if any(verb in resume_lower for verb in action_verbs) else 70
-    
-    total_score = (keyword_score * 0.7 + formatting_score * 0.1 + content_score * 0.2)
-    
-    result = {
-        'total_score': round(total_score, 1),
-        'keyword_score': round(keyword_score, 1),
-        'formatting_score': round(formatting_score, 1),
-        'content_score': round(content_score, 1),
-        'structure_score': 85.0,
-        'length_score': 90.0,
-        'improvement': round(total_score - (original_score or 0), 1) if original_score else 0
-    }
-    
-    set_cached_result(ats_score_cache, cache_key, result, 600)
+    set_cached_result(ats_score_cache, cache_key, result, 1800)
     return result
 
 def calculate_keyword_match_score(resume_text, job_description):
@@ -1132,19 +1083,27 @@ def calculate_keyword_match_score_optimized(resume_text, job_description):
     
     match_percentage = len(matched_keywords) / len(job_keywords)
     
-    # Simplified scoring for speed
-    if match_percentage >= 0.7:
+    # More granular scoring to show improvements
+    if match_percentage >= 0.9:
         return 100
-    elif match_percentage >= 0.5:
+    elif match_percentage >= 0.8:
+        return 95
+    elif match_percentage >= 0.7:
         return 90
-    elif match_percentage >= 0.3:
+    elif match_percentage >= 0.6:
+        return 85
+    elif match_percentage >= 0.5:
         return 80
-    elif match_percentage >= 0.2:
+    elif match_percentage >= 0.4:
+        return 75
+    elif match_percentage >= 0.3:
         return 70
+    elif match_percentage >= 0.2:
+        return 65
     elif match_percentage >= 0.1:
         return 60
     else:
-        return 40
+        return 50
 
 def extract_job_keywords(job_description):
     """Legacy function - use extract_job_keywords_optimized for better performance"""
