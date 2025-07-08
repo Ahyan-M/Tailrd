@@ -642,30 +642,30 @@ def optimize_docx():
         # Use circuit breaker for optimization - restore reliability
         def optimization_work():
             # Optimized file processing with memory management
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-            resume_file.save(tmp.name)
-            doc = Document(tmp.name)
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+                resume_file.save(tmp.name)
+                doc = Document(tmp.name)
 
-            # Extract text more efficiently
-        full_text = '\n'.join([p.text for p in doc.paragraphs])
-        
-            # Use optimized ATS scoring with caching
-            original_ats_score = calculate_ats_score_optimized(full_text, job_description)
-        
-            # Use optimized keyword extraction
-            keywords = extract_technical_keywords_optimized(job_description)
-        missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+                # Extract text more efficiently
+                full_text = '\n'.join([p.text for p in doc.paragraphs])
+                
+                # Use optimized ATS scoring with caching
+                original_ats_score = calculate_ats_score_optimized(full_text, job_description)
+                
+                # Use optimized keyword extraction
+                keywords = extract_technical_keywords_optimized(job_description)
+                missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
 
-            # Insert keywords efficiently
-        doc = insert_keywords_into_sections(doc, missing_keywords)
-        
-            # Get optimized text
-        optimized_text = '\n'.join([p.text for p in doc.paragraphs])
-        
-            # Calculate optimized ATS score with caching
-            optimized_ats_score = calculate_ats_score_optimized(optimized_text, job_description, original_ats_score['total_score'])
+                # Insert keywords efficiently
+                doc = insert_keywords_into_sections(doc, missing_keywords)
+                
+                # Get optimized text
+                optimized_text = '\n'.join([p.text for p in doc.paragraphs])
+                
+                # Calculate optimized ATS score with caching
+                optimized_ats_score = calculate_ats_score_optimized(optimized_text, job_description, original_ats_score['total_score'])
 
-            return doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text
+                return doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text
 
         # Execute with retry and circuit breaker - restore reliability
         start_time = time.time()
