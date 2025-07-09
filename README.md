@@ -171,6 +171,7 @@ CIRCUIT_BREAKER_RECOVERY_TIMEOUT = 60
 ```javascript
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const REQUEST_TIMEOUT = 45000; // 45 seconds
+<<<<<<< HEAD
 ```
 
 ## 📖 Usage Guide
@@ -367,28 +368,27 @@ curl http://localhost:5000/metrics
 ```bash
 cd resume-tailor-app
 npm test
+=======
+>>>>>>> ff7a610b6a37680e5a3039c4fd1abddb3ee5f67e
 ```
 
-## 📈 Monitoring & Maintenance
+## 📖 Usage Guide
 
-### Health Checks
-```bash
-# Check system health
-curl https://your-api.com/health
+### 1. Resume Optimization
 
-# Get performance metrics
-curl https://your-api.com/metrics
+1. **Upload Resume**: Drag and drop or browse for a .docx file
+2. **Enter Job Details**: Provide company name, job title, and job description
+3. **Optimize**: Click "Optimize Resume" to start the process
+4. **Review Results**: View ATS scores and keyword suggestions
+5. **Download**: Download the optimized resume
 
-# Clear cache if needed
-curl -X POST https://your-api.com/cache/clear
-```
+### 2. Job Application Tracking
 
-### Performance Monitoring
-- **Cache Statistics**: Monitor cache hit rates and memory usage
-- **Request Metrics**: Track response times and error rates
-- **Circuit Breaker Status**: Monitor system health and recovery
-- **Memory Usage**: Automatic cleanup and garbage collection
+1. **Save Applications**: Automatically save optimized resumes to your applications
+2. **Track Status**: Update application status (Applied, Interviewing, Offered, etc.)
+3. **Monitor Progress**: View your application history and success rates
 
+<<<<<<< HEAD
 ### Logging
 The application includes comprehensive logging for:
 - Request/response tracking
@@ -454,6 +454,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **API connection errors**: Check `REACT_APP_API_URL` in environment variables
 - **Build errors**: Clear `node_modules` and reinstall dependencies
 - **Styling issues**: Ensure Tailwind CSS is properly configured
+=======
+### 3. Keyword Suggestions
+
+1. **Get Suggestions**: Receive industry-specific keyword recommendations
+2. **Select Keywords**: Choose which keywords to add to your resume
+3. **Custom Optimization**: Fine-tune your resume with selected keywords
+
+>>>>>>> ff7a610b6a37680e5a3039c4fd1abddb3ee5f67e
 
 ## 🙏 Acknowledgments
 
