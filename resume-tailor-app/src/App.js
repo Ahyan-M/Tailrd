@@ -69,6 +69,7 @@ function App() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   // Footer state
   const [footerPage, setFooterPage] = useState(null);
@@ -163,6 +164,7 @@ function App() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError(''); // Clear previous errors
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
@@ -172,7 +174,11 @@ function App() {
       setUser(data.user);
       toast.success("Welcome back!");
     } catch (error) {
-      toast.error("Error logging in: " + error.message);
+      if (error.message.includes('Invalid login credentials')) {
+        setLoginError('Invalid email or password.');
+      } else {
+        setLoginError('Error logging in: ' + error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -571,6 +577,30 @@ function App() {
     }
   };
 
+  // Reset function to clear all resume optimization state
+  const handleReset = () => {
+    setResumeFile(null);
+    setIsDragOver(false);
+    setCompanyName('');
+    setJobRole('');
+    setJobDescription('');
+    setExportFormat('docx');
+    setLoading(false);
+    setResult(null);
+    setOriginalAtsScore(null);
+    setOptimizedAtsScore(null);
+    setAtsImprovement(0);
+    setSuggestedKeywords([]);
+    setSelectedKeywords([]);
+    setFinalizing(false);
+    setFinalDownloadUrl(null);
+    
+    // Clear file input if it exists
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Job Application Tracking Functions
   const saveJobApplication = async () => {
     if (!user || !companyName || !jobRole) return;
@@ -743,7 +773,10 @@ function App() {
               {/* Auth Mode Toggle */}
               <div className="flex mb-8 rounded-lg p-1">
                 <button
-                  onClick={() => setAuthMode('signin')}
+                  onClick={() => {
+                    setAuthMode('signin');
+                    setLoginError('');
+                  }}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
                     authMode === 'signin'
                       ? 'bg-black text-white shadow-sm'
@@ -753,7 +786,10 @@ function App() {
                   Log In
                 </button>
                 <button
-                  onClick={() => setAuthMode('signup')}
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setLoginError('');
+                  }}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
                     authMode === 'signup'
                       ? 'bg-black text-white shadow-sm'
@@ -790,7 +826,10 @@ function App() {
                       <input
                         type="email"
                         value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
+                        onChange={(e) => {
+                          setLoginEmail(e.target.value);
+                          setLoginError('');
+                        }}
                         placeholder="Enter your email"
                         required
                         className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
@@ -801,11 +840,17 @@ function App() {
                       <input
                         type="password"
                         value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
+                        onChange={(e) => {
+                          setLoginPassword(e.target.value);
+                          setLoginError('');
+                        }}
                         placeholder="Enter your password"
                         required
                         className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
                       />
+                      {loginError && (
+                        <p className="text-red-500 text-sm mt-1">{loginError}</p>
+                      )}
                     </div>
                     <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Logging In...' : 'Log In'}</button>
                   </form>
@@ -924,6 +969,7 @@ function App() {
           darkMode={darkMode}
           saveJobApplication={saveJobApplication}
           handleSimpleOptimize={handleSimpleOptimize}
+          handleReset={handleReset}
         />
       )}
 

@@ -3,6 +3,7 @@ import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import { ReactComponent as DownToLineIcon } from '../assets/icons/down-to-line.svg';
+import { ReactComponent as BullseyeArrowIcon } from '../assets/icons/bullseye-arrow.svg';
 import ProgressStepper from '../components/ProgressStepper';
 
 const ResumeOptimizer = ({
@@ -35,6 +36,7 @@ const ResumeOptimizer = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [optimizing, setOptimizing] = useState(false);
   const [processingStage, setProcessingStage] = useState('');
+  const [optimizationError, setOptimizationError] = useState('');
 
   const steps = [
     { id: 1, name: 'Upload Resume', icon: <MemoIcon width={22} height={22} /> },
@@ -57,6 +59,7 @@ const ResumeOptimizer = ({
   const handleOptimize = async () => {
     setOptimizing(true);
     setProcessingStage('uploading');
+    setOptimizationError(''); // Clear previous errors
     
     try {
       // Simulate processing stages for better UX
@@ -75,16 +78,28 @@ const ResumeOptimizer = ({
       setCurrentStep(4);
     } catch (error) {
       console.error('Optimization failed:', error);
-      // If simple optimization fails, try the complex one
-      try {
-        setProcessingStage('optimizing');
-        await handleFinalize();
-        setProcessingStage('finalizing');
-        await fetchSuggestions();
-        setCurrentStep(4);
-      } catch (finalizeError) {
-        console.error('Finalize also failed:', finalizeError);
+      let errorMessage = 'Failed to optimize resume. Please try again.';
+      if (error.message.includes('timeout') || error.message.includes('timed out')) {
+        errorMessage = 'Optimization timed out. Please try with a smaller file or shorter job description.';
+      } else if (error.message.includes('File too large')) {
+        errorMessage = 'File is too large. Please upload a smaller resume file (max 16MB).';
+      } else if (error.message.includes('Job description too long')) {
+        errorMessage = 'Job description is too long. Please keep it under 750 words.';
+      } else if (error.message.includes('Server is busy')) {
+        errorMessage = 'Server is busy. Please try again in a moment.';
+      } else if (error.message.includes('too complex')) {
+        errorMessage = 'File is too complex to process. Please try with a simpler resume format.';
+      } else if (error.message.includes('Invalid file format')) {
+        errorMessage = 'Invalid file format. Please upload a .docx file.';
+      } else if (error.message.includes('No keywords found')) {
+        errorMessage = 'Not enough keywords found in the job description.';
+      } else if (error.message.includes('Network error')) {
+        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (error.message.includes('Error optimizing resume. Please try again.')) {
+        errorMessage = 'Error optimizing resume. Please try again.';
       }
+      setOptimizationError(errorMessage);
+      setCurrentStep(4); // Show error in the same card as success
     } finally {
       setOptimizing(false);
       setProcessingStage('');
@@ -428,60 +443,92 @@ const ResumeOptimizer = ({
           </div>
         )}
 
-        {/* Step 4: Download */}
+        {/* Step 4: Download or Error */}
         {currentStep === 4 && (
           <div className="space-y-8">
             <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-8 shadow-sm`}>
               <div className="text-center">
-                <div className="text-center">
-                  <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimized Successfully!</h2>
-                  <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your resume has been optimized for maximum ATS compatibility</p>
-                </div>
-
-                {atsScores && (
-                  <div className="mt-8 text-center">
-                    <div className={`text-4xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
-                      {atsScores.total_score}% ATS Score
+                {optimizationError ? (
+                  <>
+                    <div className="text-center">
+                      <h2 className={`text-3xl font-bold mb-4 text-red-600`}>Optimization Unsuccessful</h2>
+                      <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{optimizationError}</p>
                     </div>
-                    <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {formatScore(atsScores.total_score).label} compatibility
-                    </p>
-                  </div>
+                    <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                      <button
+                        onClick={() => {
+                          setOptimizationError('');
+                          setCurrentStep(2); // Go back to job details
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                        }`}
+                      >
+                        ← Modify Job Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleReset();
+                          setCurrentStep(1);
+                          setOptimizing(false);
+                          setOptimizationError('');
+                        }}
+                        className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-all duration-300"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimized Successfully!</h2>
+                    <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your resume has been optimized for maximum ATS compatibility</p>
+                    {atsScores && (
+                      <div className="mt-8 text-center">
+                        <div className={`text-4xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
+                          {atsScores.total_score}% ATS Score
+                        </div>
+                        <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{formatScore(atsScores.total_score).label} compatibility</p>
+                      </div>
+                    )}
+                    <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                      <button
+                        onClick={handleDownload}
+                        className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300"
+                      >
+                        Download Resume
+                      </button>
+                      <button
+                        onClick={saveJobApplication}
+                        className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+                      >
+                        Save to Applications
+                      </button>
+                    </div>
+                  </>
                 )}
-
-                <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                  <button
-                    onClick={handleDownload}
-                    className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300"
-                  >
-                    Download Resume
-                  </button>
-                  <button
-                    onClick={saveJobApplication}
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300"
-                  >
-                    Save to Applications
-                  </button>
-                </div>
               </div>
             </div>
-
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  handleReset();
-                  setCurrentStep(1);
-                  setOptimizing(false);
-                }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                }`}
-              >
-                Optimize Another Resume
-              </button>
-            </div>
+            {!optimizationError && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    handleReset();
+                    setCurrentStep(1);
+                    setOptimizing(false);
+                  }}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                  }`}
+                >
+                  Optimize Another Resume
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
