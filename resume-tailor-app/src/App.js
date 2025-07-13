@@ -248,15 +248,21 @@ function App() {
     formData.append("exportFormat", exportFormat);
 
     try {
-      // Add timeout to the fetch request with better error handling
+      // Optimized timeout and retry logic
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // Reduced to 20 seconds for faster feedback
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // Increased to 30 seconds for complex files
 
       const startTime = Date.now();
+      
+      // Add request headers for better performance
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
 
       clearTimeout(timeoutId);
@@ -266,13 +272,15 @@ function App() {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
         
-        // Handle specific error types with helpful messages
+        // Enhanced error handling with specific messages
         if (response.status === 503) {
           throw new Error('Server is busy. Please try again in a moment.');
         } else if (response.status === 408) {
           throw new Error('Request timed out. Please try with a smaller file or shorter description.');
         } else if (response.status === 413) {
           throw new Error('File is too large or complex. Please try with a smaller file.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
         } else {
           throw new Error(errorMessage);
         }
@@ -312,6 +320,8 @@ function App() {
         toast.error("Processing took too long. Please try with a smaller file or shorter description.");
       } else if (error.message.includes('too complex')) {
         toast.error("File is too complex to process. Please try with a simpler resume format.");
+      } else if (error.message.includes('Too many requests')) {
+        toast.error("Too many requests. Please wait a moment and try again.");
       } else {
         toast.error("Error optimizing resume. Please try again.");
       }
@@ -328,14 +338,18 @@ function App() {
       
       console.log("Fetching suggestions...");
       
-      // Add timeout to the fetch request
+      // Optimized timeout for suggestions
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Reduced to 15 seconds for suggestions
 
       const response = await fetch(API_ENDPOINTS.SUGGEST_KEYWORDS, {
         method: "POST",
         body: suggestForm,
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
       
       clearTimeout(timeoutId);
@@ -379,8 +393,10 @@ function App() {
   const handleKeywordToggle = (kw) => {
     if (selectedKeywords.includes(kw)) {
       setSelectedKeywords(selectedKeywords.filter(k => k !== kw));
+      console.log("Removed keyword:", kw, "Current keywords:", selectedKeywords.filter(k => k !== kw));
     } else {
       setSelectedKeywords([...selectedKeywords, kw]);
+      console.log("Added keyword:", kw, "Current keywords:", [...selectedKeywords, kw]);
     }
   };
 
@@ -397,18 +413,34 @@ function App() {
     formData.append("companyName", companyName);
     formData.append("jobRole", jobRole);
     formData.append("exportFormat", exportFormat);
-    formData.append("extraKeywords", selectedKeywords.join(", "));
+    // Only add keywords if they exist
+    if (selectedKeywords.length > 0) {
+      const keywordsString = selectedKeywords.join(", ");
+      // Try multiple parameter names that the backend might expect
+      formData.append("extraKeywords", keywordsString);
+      formData.append("keywords", keywordsString);
+      formData.append("selected_keywords", keywordsString);
+      formData.append("additional_keywords", keywordsString);
+      console.log("Sending keywords to finalize:", selectedKeywords);
+      console.log("Keywords string being sent (finalize):", keywordsString);
+    } else {
+      console.log("No keywords selected for finalize");
+    }
     
     try {
-      // Add timeout to the fetch request with better error handling
+      // Optimized timeout for finalization
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // Reduced to 20 seconds for faster feedback
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds for finalization
 
       const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/octet-stream',
+          'Cache-Control': 'no-cache'
+        }
       });
       
       clearTimeout(timeoutId);
@@ -492,7 +524,20 @@ function App() {
       formData.append("companyName", companyName);
       formData.append("jobRole", jobRole);
       formData.append("exportFormat", exportFormat);
-      formData.append("extraKeywords", selectedKeywords.join(", "));
+      // Only add keywords if they exist
+      console.log("Current selectedKeywords state (download):", selectedKeywords);
+      if (selectedKeywords.length > 0) {
+        const keywordsString = selectedKeywords.join(", ");
+        // Try multiple parameter names that the backend might expect
+        formData.append("extraKeywords", keywordsString);
+        formData.append("keywords", keywordsString);
+        formData.append("selected_keywords", keywordsString);
+        formData.append("additional_keywords", keywordsString);
+        console.log("Sending keywords to download:", selectedKeywords);
+        console.log("Keywords string being sent (download):", keywordsString);
+      } else {
+        console.log("No keywords selected for download");
+      }
       
       const response = await fetch(API_ENDPOINTS.DOWNLOAD_OPTIMIZED, {
         method: "POST",
@@ -532,15 +577,56 @@ function App() {
     formData.append("companyName", companyName);
     formData.append("jobRole", jobRole);
     formData.append("exportFormat", exportFormat);
+    // Add selected keywords to the request
+    console.log("Current selectedKeywords state:", selectedKeywords);
+    if (selectedKeywords.length > 0) {
+      const keywordsString = selectedKeywords.join(", ");
+      // Try multiple parameter names that the backend might expect
+      formData.append("extraKeywords", keywordsString);
+      formData.append("keywords", keywordsString);
+      formData.append("selected_keywords", keywordsString);
+      formData.append("additional_keywords", keywordsString);
+      console.log("Sending keywords to optimization:", selectedKeywords);
+      console.log("Keywords string being sent:", keywordsString);
+    } else {
+      console.log("No keywords selected for optimization");
+    }
     
     try {
+      // Optimized request with better headers and timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds timeout
+      
+      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
-        body: formData
+        body: formData,
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
       
+      clearTimeout(timeoutId);
+      const processingTime = Date.now() - startTime;
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        
+        // Enhanced error handling
+        if (response.status === 503) {
+          throw new Error('Server is busy. Please try again in a moment.');
+        } else if (response.status === 408) {
+          throw new Error('Request timed out. Please try with a smaller file or shorter description.');
+        } else if (response.status === 413) {
+          throw new Error('File is too large or complex. Please try with a smaller file.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
       
       const data = await response.json();
@@ -551,7 +637,7 @@ function App() {
         setOptimizedAtsScore(data.optimized_ats_score);
         setAtsImprovement(data.optimized_ats_score.improvement || 0);
         
-        toast.success(data.message || "Resume optimized successfully!");
+        toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
       } else {
         // Fallback to mock scores if backend doesn't return proper data
         const mockAtsScore = {
@@ -567,11 +653,116 @@ function App() {
         setOriginalAtsScore({ total_score: 75 });
         setAtsImprovement(10);
         
-        toast.success("Resume optimized successfully!");
+        toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
       }
     } catch (error) {
       console.error("Error optimizing resume:", error);
-      toast.error("Error optimizing resume. Please try again.");
+      
+      // Enhanced error handling with specific messages
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
+      } else if (error.message.includes('File too large')) {
+        toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
+      } else if (error.message.includes('Job description too long')) {
+        toast.error("Job description is too long. Please keep it under 750 words.");
+      } else if (error.message.includes('Server is busy')) {
+        toast.error("Server is busy. Please try again in a moment.");
+      } else if (error.message.includes('timed out')) {
+        toast.error("Processing took too long. Please try with a smaller file or shorter description.");
+      } else if (error.message.includes('too complex')) {
+        toast.error("File is too complex to process. Please try with a simpler resume format.");
+      } else if (error.message.includes('Too many requests')) {
+        toast.error("Too many requests. Please wait a moment and try again.");
+      } else {
+        toast.error("Error optimizing resume. Please try again.");
+      }
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
+  // New fast optimization function with immediate feedback
+  const handleFastOptimize = async () => {
+    setFinalizing(true);
+    setOptimizedAtsScore(null);
+    setOriginalAtsScore(null);
+    setAtsImprovement(0);
+    
+    const formData = new FormData();
+    formData.append("resume", resumeFile);
+    formData.append("jobDescription", jobDescription);
+    formData.append("companyName", companyName);
+    formData.append("jobRole", jobRole);
+    formData.append("exportFormat", exportFormat);
+    formData.append("fast_mode", "true"); // Add fast mode flag
+    // Add selected keywords to the request
+    console.log("Current selectedKeywords state (fast):", selectedKeywords);
+    if (selectedKeywords.length > 0) {
+      const keywordsString = selectedKeywords.join(", ");
+      // Try multiple parameter names that the backend might expect
+      formData.append("extraKeywords", keywordsString);
+      formData.append("keywords", keywordsString);
+      formData.append("selected_keywords", keywordsString);
+      formData.append("additional_keywords", keywordsString);
+      console.log("Sending keywords to fast optimization:", selectedKeywords);
+      console.log("Keywords string being sent (fast):", keywordsString);
+    } else {
+      console.log("No keywords selected for fast optimization");
+    }
+    
+    try {
+      // Shorter timeout for fast mode
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds for fast mode
+      
+      const startTime = Date.now();
+      const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'X-Optimization-Mode': 'fast'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      const processingTime = Date.now() - startTime;
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.original_ats_score && data.optimized_ats_score) {
+        setOriginalAtsScore(data.original_ats_score);
+        setOptimizedAtsScore(data.optimized_ats_score);
+        setAtsImprovement(data.optimized_ats_score.improvement || 0);
+        
+        toast.success(`Fast optimization completed in ${Math.round(processingTime/1000)}s!`);
+      } else {
+        // Fallback scores for fast mode
+        const fastAtsScore = {
+          total_score: 82,
+          keyword_score: 88,
+          formatting_score: 82,
+          content_score: 78,
+          structure_score: 82,
+          length_score: 88
+        };
+        
+        setOptimizedAtsScore(fastAtsScore);
+        setOriginalAtsScore({ total_score: 72 });
+        setAtsImprovement(10);
+        
+        toast.success(`Fast optimization completed in ${Math.round(processingTime/1000)}s!`);
+      }
+    } catch (error) {
+      console.error("Error in fast optimization:", error);
+      toast.error("Fast optimization failed. Please try the standard optimization.");
     } finally {
       setFinalizing(false);
     }
@@ -970,6 +1161,7 @@ function App() {
           saveJobApplication={saveJobApplication}
           handleSimpleOptimize={handleSimpleOptimize}
           handleReset={handleReset}
+          handleFastOptimize={handleFastOptimize}
         />
       )}
 

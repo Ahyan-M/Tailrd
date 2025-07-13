@@ -31,7 +31,8 @@ const ResumeOptimizer = ({
   darkMode,
   saveJobApplication,
   handleSimpleOptimize,
-  handleReset
+  handleReset,
+  handleFastOptimize
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [optimizing, setOptimizing] = useState(false);
@@ -62,23 +63,45 @@ const ResumeOptimizer = ({
     setOptimizationError(''); // Clear previous errors
     
     try {
-      // Simulate processing stages for better UX
-      setTimeout(() => setProcessingStage('analyzing'), 500);
-      setTimeout(() => setProcessingStage('extracting'), 1500);
-      setTimeout(() => setProcessingStage('scoring'), 2500);
-      setTimeout(() => setProcessingStage('optimizing'), 3500);
+      // Enhanced processing stages with better timing and feedback
+      const stageTimings = {
+        uploading: 800,
+        analyzing: 1200,
+        extracting: 1000,
+        scoring: 1500,
+        optimizing: 2000,
+        finalizing: 1000
+      };
+
+      // Start with uploading stage
+      setTimeout(() => setProcessingStage('analyzing'), stageTimings.uploading);
+      setTimeout(() => setProcessingStage('extracting'), stageTimings.uploading + stageTimings.analyzing);
+      setTimeout(() => setProcessingStage('scoring'), stageTimings.uploading + stageTimings.analyzing + stageTimings.extracting);
+      setTimeout(() => setProcessingStage('optimizing'), stageTimings.uploading + stageTimings.analyzing + stageTimings.extracting + stageTimings.scoring);
       
-      // Try the simple optimization first
+      // First, fetch suggestions if not already available
+      if (suggestedKeywords.length === 0) {
+        await fetchSuggestions();
+      }
+      
+      // Perform the actual optimization with ALL keywords (job keywords + selected keywords)
       await handleSimpleOptimize();
       
-      setProcessingStage('finalizing');
-      // After optimization, automatically fetch suggestions
-      await fetchSuggestions();
+      // Final stages
+      setTimeout(() => setProcessingStage('finalizing'), 100);
       
-      setCurrentStep(4);
+      setProcessingStage('preparing');
+      setTimeout(() => {
+        // Move to step 4 (download) after optimization
+        setOptimizing(false);
+        setCurrentStep(4);
+      }, 500);
+      
     } catch (error) {
       console.error('Optimization failed:', error);
       let errorMessage = 'Failed to optimize resume. Please try again.';
+      
+      // Enhanced error handling with specific messages
       if (error.message.includes('timeout') || error.message.includes('timed out')) {
         errorMessage = 'Optimization timed out. Please try with a smaller file or shorter job description.';
       } else if (error.message.includes('File too large')) {
@@ -95,19 +118,118 @@ const ResumeOptimizer = ({
         errorMessage = 'Not enough keywords found in the job description.';
       } else if (error.message.includes('Network error')) {
         errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many requests. Please wait a moment and try again.';
       } else if (error.message.includes('Error optimizing resume. Please try again.')) {
         errorMessage = 'Error optimizing resume. Please try again.';
       }
+      
       setOptimizationError(errorMessage);
-      setCurrentStep(4); // Show error in the same card as success
-    } finally {
+      // Stay on step 3 to show error
       setOptimizing(false);
-      setProcessingStage('');
     }
   };
 
+  const getStageMessage = (stage) => {
+    switch (stage) {
+      case 'uploading':
+        return 'Uploading your resume...';
+      case 'analyzing':
+        return 'Analyzing your resume...';
+      case 'extracting':
+        return 'Extracting text from your resume...';
+      case 'scoring':
+        return 'Scoring your resume...';
+      case 'optimizing':
+        return 'Optimizing your resume...';
+      case 'finalizing':
+        return 'Finalizing your resume...';
+      default:
+        return 'Processing...';
+    }
+  };
+
+  const getProgressPercentage = () => {
+    const totalTime = 1000 + 1200 + 1000 + 1500 + 2000 + 1000; // Sum of all stages
+    const elapsedTime = totalTime - (optimizing ? 0 : 1000); // Subtract the current stage if optimizing
+    return (elapsedTime / totalTime) * 100;
+  };
+
+  const getEstimatedTime = () => {
+    if (!resumeFile) return '2-3 minutes';
+    
+    const fileSizeMB = resumeFile.size / (1024 * 1024);
+    if (fileSizeMB < 1) return '1-2 minutes';
+    if (fileSizeMB < 2) return '2-3 minutes';
+    if (fileSizeMB < 5) return '3-4 minutes';
+    return '4-5 minutes';
+  };
+
+  const getFileSizeWarning = () => {
+    if (!resumeFile) return null;
+    
+    const fileSizeMB = resumeFile.size / (1024 * 1024);
+    if (fileSizeMB > 10) {
+      return {
+        type: 'warning',
+        message: 'Large file detected. This may take longer to process.'
+      };
+    }
+    if (fileSizeMB > 5) {
+      return {
+        type: 'info',
+        message: 'Medium file size. Processing should be quick.'
+      };
+    }
+    return {
+      type: 'success',
+      message: 'Small file size. This should process quickly.'
+    };
+  };
+
+  const fileSizeWarning = getFileSizeWarning();
+
   return (
     <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
+      {/* Loading Overlay */}
+      {optimizing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl`}>
+            <div className="mb-6">
+              <div className="w-16 h-16 mx-auto mb-4">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Optimizing Your Resume
+              </h3>
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {processingStage && getStageMessage(processingStage)}
+              </p>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                style={{ 
+                  width: `${getProgressPercentage()}%`,
+                }}
+              ></div>
+            </div>
+            
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            
+            <p className={`text-xs mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Please don't close this window while we process your resume...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
@@ -190,6 +312,33 @@ const ResumeOptimizer = ({
                     Continue
                   </button>
                 </div>
+                
+                {/* File size warning */}
+                {fileSizeWarning && (
+                  <div className={`mt-4 p-3 rounded-lg border ${
+                    fileSizeWarning.type === 'warning' 
+                      ? darkMode 
+                        ? 'bg-yellow-900 border-yellow-700 text-yellow-200' 
+                        : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                      : fileSizeWarning.type === 'info'
+                      ? darkMode 
+                        ? 'bg-blue-900 border-blue-700 text-blue-200' 
+                        : 'bg-blue-50 border-blue-200 text-blue-800'
+                      : darkMode 
+                        ? 'bg-green-900 border-green-700 text-green-200' 
+                        : 'bg-green-50 border-green-200 text-green-800'
+                  }`}>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm">
+                        {fileSizeWarning.type === 'warning' ? '⚠️' : fileSizeWarning.type === 'info' ? 'ℹ️' : '✅'}
+                      </span>
+                      <span className="text-sm font-medium">{fileSizeWarning.message}</span>
+                    </div>
+                    <p className={`text-xs mt-1 ${darkMode ? 'opacity-80' : 'opacity-70'}`}>
+                      Estimated processing time: {getEstimatedTime()}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -274,7 +423,11 @@ const ResumeOptimizer = ({
               </button>
               
               <button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => {
+                  setCurrentStep(3);
+                  // Automatically fetch suggestions when moving to step 3
+                  setTimeout(() => fetchSuggestions(), 100);
+                }}
                 disabled={!canProceedToStep3 || jobDescription.split(/\s+/).filter(Boolean).length > 750}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
                   !canProceedToStep3 || jobDescription.split(/\s+/).filter(Boolean).length > 750
@@ -292,17 +445,18 @@ const ResumeOptimizer = ({
         {currentStep === 3 && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* ATS Score Overview */}
+              {/* Keyword Selection and Optimization */}
               <div className="lg:col-span-2">
                 <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-8 shadow-sm`}>
                   <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    ATS Compatibility Score
+                    Select Keywords & Optimize
                   </h2>
                   
                   {atsScores ? (
                     <div className="space-y-6">
+                      {/* ATS Score Display */}
                       <div className="text-center">
-                        <div className={`text-6xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
+                        <div className={`text-4xl font-bold mb-2 ${formatScore(atsScores.total_score).color}`}>
                           {atsScores.total_score}%
                         </div>
                         <div className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -331,23 +485,44 @@ const ResumeOptimizer = ({
                           </div>
                         </div>
                       </div>
+
+                      {/* Action buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                        <button
+                          onClick={handleOptimize}
+                          disabled={optimizing || finalizing}
+                          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                            optimizing || finalizing
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-green-600 hover:bg-green-700 text-white'
+                          }`}
+                        >
+                          {optimizing || finalizing ? 'Optimizing...' : `Optimize with ${selectedKeywords.length} Selected Keywords`}
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
                       <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Ready to optimize your resume
+                        Ready to optimize your resume with selected keywords
                       </p>
-                      <button
-                        onClick={handleOptimize}
-                        disabled={optimizing || finalizing}
-                        className={`mt-4 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                          optimizing || finalizing
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-900 hover:bg-gray-800 text-white'
-                        }`}
-                      >
-                        {optimizing || finalizing ? 'Processing...' : 'Optimize Resume'}
-                      </button>
+                      
+                      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                        <button
+                          onClick={handleOptimize}
+                          disabled={optimizing || finalizing}
+                          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                            optimizing || finalizing
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-900 hover:bg-gray-800 text-white'
+                          }`}
+                        >
+                          {optimizing || finalizing ? 'Processing...' : 'Optimize Resume'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        This will optimize your resume with job keywords + selected keywords
+                      </p>
                     </div>
                   )}
                 </div>
@@ -371,12 +546,15 @@ const ResumeOptimizer = ({
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      Refresh
+                      Get Keywords
                     </button>
                   </div>
 
                   {suggestedKeywords.length > 0 ? (
                     <div className="space-y-2">
+                      <div className="text-sm text-gray-500 mb-3">
+                        Select keywords to include in your resume optimization:
+                      </div>
                       {suggestedKeywords.map((keyword, index) => (
                         <button
                           key={index}
@@ -384,33 +562,42 @@ const ResumeOptimizer = ({
                           className={`w-full text-left p-3 rounded-lg border transition-all duration-300 ${
                             selectedKeywords.includes(keyword)
                               ? darkMode 
-                                ? 'bg-gray-700 border-gray-500' 
-                                : 'bg-gray-100 border-gray-400'
+                                ? 'bg-green-700 border-green-500 text-white' 
+                                : 'bg-green-100 border-green-400 text-green-800'
                               : darkMode 
                                 ? 'bg-gray-700 border-gray-600 hover:border-gray-500' 
                                 : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`font-medium ${selectedKeywords.includes(keyword) ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'}`}>
                               {keyword}
                             </span>
-                            <span className={`text-sm ${selectedKeywords.includes(keyword) ? 'text-green-600' : 'text-gray-400'}`}>
-                              {selectedKeywords.includes(keyword) ? '✓' : '+'}
+                            <span className={`text-sm ${selectedKeywords.includes(keyword) ? 'text-white' : 'text-gray-400'}`}>
+                              {selectedKeywords.includes(keyword) ? '✓ Selected' : 'Click to add'}
                             </span>
                           </div>
                         </button>
                       ))}
+                      {selectedKeywords.length > 0 && (
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
+                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                            <strong>{selectedKeywords.length} keywords selected.</strong> Click "Optimize Again" to include them in your resume.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{atsScores ? 'No keyword suggestions available' : 'Optimize first to get suggestions'}</p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {atsScores ? 'Click "Get Keywords" to see suggested keywords from the job description' : 'Optimize your resume first to get keyword suggestions'}
+                      </p>
                       {atsScores && (
                         <button
                           onClick={fetchSuggestions}
-                          className="mt-3 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-lg transition-all duration-300"
+                          className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-all duration-300"
                         >
-                          Get Suggestions
+                          Get Keywords
                         </button>
                       )}
                     </div>
@@ -419,7 +606,8 @@ const ResumeOptimizer = ({
               </div>
             </div>
 
-            <div className="flex justify-between items-center">
+            {/* Back button for step 3 */}
+            <div className="flex justify-start mt-6">
               <button
                 onClick={() => setCurrentStep(2)}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
@@ -428,17 +616,8 @@ const ResumeOptimizer = ({
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                 }`}
               >
-                ← Back
+                ← Back to Job Details
               </button>
-              
-              {atsScores && (
-                <button
-                  onClick={() => setCurrentStep(4)}
-                  className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-all duration-300"
-                >
-                  Continue to Download →
-                </button>
-              )}
             </div>
           </div>
         )}

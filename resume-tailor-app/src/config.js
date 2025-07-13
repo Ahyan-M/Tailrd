@@ -2,7 +2,7 @@
 // For production with custom domain, use: 'https://api.tailrd.com'
 // For current Render deployment: 'https://tailrd.onrender.com'
 // For local development: 'http://localhost:8000'
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tailrd.onrender.com';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export const API_ENDPOINTS = {
   OPTIMIZE_DOCX: `${API_BASE_URL}/optimize-docx`,

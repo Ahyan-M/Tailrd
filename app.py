@@ -479,10 +479,17 @@ def find_section_paragraphs(doc):
     return sections
 
 def insert_keywords_into_sections(doc, missing_keywords):
+    logger.info(f"insert_keywords_into_sections called with keywords: {missing_keywords}")
     if not missing_keywords:
+        logger.info("No keywords to insert")
         return doc
+    
+    logger.info(f"Document has {len(doc.paragraphs)} paragraphs")
+    for i, para in enumerate(doc.paragraphs):
+        logger.info(f"Paragraph {i}: '{para.text[:50]}...'")
 
     def insert_after_header(header_variations):
+        logger.info(f"Looking for headers: {header_variations}")
         idx = None
         for i, para in enumerate(doc.paragraphs):
             text_upper = para.text.strip().upper()
@@ -490,24 +497,30 @@ def insert_keywords_into_sections(doc, missing_keywords):
             for header in header_variations:
                 if header in text_upper and len(text_upper) < 30:  # Avoid matching text within sentences
                     idx = i
+                    logger.info(f"Found header '{header}' at paragraph {i}: '{para.text}'")
                     break
             if idx is not None:
                 break
         
         if idx is not None:
+            logger.info(f"Looking for skills paragraph after header at index {idx}")
             # Look for the next paragraph that contains skills/keywords
             for j in range(idx + 1, len(doc.paragraphs)):
                 para = doc.paragraphs[j]
                 text = para.text.strip()
                 if text and (',' in text or '/' in text or '&' in text or ' and ' in text):
+                    logger.info(f"Found skills paragraph at index {j}: '{text}'")
                     add_keywords_with_style(para, missing_keywords)
                     return True  # Successfully added keywords
             # If no suitable paragraph found, add keywords to the header paragraph itself
             if idx < len(doc.paragraphs) - 1:
                 next_para = doc.paragraphs[idx + 1]
                 if not next_para.text.strip():  # Empty paragraph
+                    logger.info(f"Adding keywords to empty paragraph after header")
                     add_keywords_with_style(next_para, missing_keywords)
                     return True
+        else:
+            logger.info("No header found")
         return False
 
     # Try different section header variations
@@ -562,7 +575,10 @@ def create_export_filename(company_name, job_role, format_type):
 
 def add_keywords_with_style(paragraph, keywords):
     """Add keywords to a paragraph by appending them to existing text with proper formatting."""
+    logger.info(f"add_keywords_with_style called with keywords: {keywords}")
+    logger.info(f"Original paragraph text: '{paragraph.text}'")
     if not keywords:
+        logger.info("No keywords to add to paragraph")
         return
     
     original_text = paragraph.text.strip()
@@ -613,6 +629,8 @@ def add_keywords_with_style(paragraph, keywords):
         run = paragraph.add_run(final_text)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
+    
+    logger.info(f"Updated paragraph text: '{paragraph.text}'")
 
 @app.route('/optimize-docx', methods=['POST'])
 @timeout_handler(30)  # Back to 30 seconds for reliability
@@ -623,9 +641,17 @@ def optimize_docx():
 
     resume_file = request.files['resume']
     job_description = request.form['jobDescription']
+    extra_keywords = request.form.get('extraKeywords', '')  # Get extra keywords from request
     company_name = request.form.get('companyName', '').strip()
     job_role = request.form.get('jobRole', '').strip()
     export_format = request.form.get('exportFormat', 'docx').lower()
+    
+    # Debug logging for keywords
+    logger.info(f"Received extraKeywords: '{extra_keywords}'")
+    logger.info(f"All form data keys: {list(request.form.keys())}")
+    for key, value in request.form.items():
+        if 'keyword' in key.lower():
+            logger.info(f"Keyword parameter '{key}': '{value}'")
 
     # Enhanced validation with better error messages
     if resume_file.content_length and resume_file.content_length > app.config['MAX_CONTENT_LENGTH']:
@@ -639,6 +665,10 @@ def optimize_docx():
     cleanup_temp_files()
 
     try:
+        # Process extra keywords from user selection
+        extra_keywords_list = [s.strip() for s in re.split(r'[;,/]|\\band\\b|\\&', extra_keywords) if s.strip()]
+        logger.info(f"Processed extra keywords: {extra_keywords_list}")
+        
         # Use circuit breaker for optimization - restore reliability
         def optimization_work():
             # Optimized file processing with memory management
@@ -655,9 +685,25 @@ def optimize_docx():
                 # Use optimized keyword extraction
                 keywords = extract_technical_keywords_optimized(job_description)
                 missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+                
+                # Combine job keywords and extra keywords
+                all_keywords = missing_keywords + extra_keywords_list
+                unique_keywords = []
+                seen = set()
+                for kw in all_keywords:
+                    if kw.lower() not in seen:
+                        unique_keywords.append(kw)
+                        seen.add(kw.lower())
+                
+                logger.info(f"Job keywords: {keywords}")
+                logger.info(f"Missing job keywords: {missing_keywords}")
+                logger.info(f"Extra keywords: {extra_keywords_list}")
+                logger.info(f"All unique keywords to add: {unique_keywords}")
 
                 # Insert keywords efficiently
-                doc = insert_keywords_into_sections(doc, missing_keywords)
+                logger.info(f"Calling insert_keywords_into_sections with {len(unique_keywords)} keywords")
+                doc = insert_keywords_into_sections(doc, unique_keywords)
+                logger.info("insert_keywords_into_sections completed")
                 
                 # Get optimized text
                 optimized_text = '\n'.join([p.text for p in doc.paragraphs])
@@ -665,7 +711,7 @@ def optimize_docx():
                 # Calculate optimized ATS score with caching
                 optimized_ats_score = calculate_ats_score_optimized(optimized_text, job_description, original_ats_score['total_score'])
 
-                return doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text
+                return doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text, unique_keywords
 
         # Execute with retry and circuit breaker - restore reliability
         start_time = time.time()
@@ -673,7 +719,7 @@ def optimize_docx():
             lambda: optimization_circuit_breaker.call(optimization_work)
         )
         
-        doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text = result
+        doc, original_ats_score, optimized_ats_score, keywords, missing_keywords, optimized_text, unique_keywords = result
         processing_time = time.time() - start_time
 
         # Handle export formats efficiently
@@ -707,16 +753,17 @@ def optimize_docx():
             'optimized_ats_score': optimized_ats_score,
             'keywords': keywords,
             'missing_keywords': missing_keywords,
-            'keywords_added': len(missing_keywords),
+            'extra_keywords': extra_keywords_list,
+            'keywords_added': len(unique_keywords),
             'resumeText': optimized_text[:1000] + "..." if len(optimized_text) > 1000 else optimized_text,
             'download_ready': True,
-            'message': f'Resume optimized successfully! Added {len(missing_keywords)} keywords. ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
+            'message': f'Resume optimized successfully! Added {len(unique_keywords)} keywords (including {len(extra_keywords_list)} selected keywords). ATS score improved by {optimized_ats_score["improvement"]:.1f} points.',
             'performance_metrics': {
                 'processing_time_ms': int(processing_time * 1000),
                 'cache_hits': len([k for k in keyword_cache.keys() if 'keywords' in k]),
                 'text_processed': len(optimized_text),
                 'keywords_found': len(keywords),
-                'keywords_added': len(missing_keywords)
+                'keywords_added': len(unique_keywords)
             }
         })
     except Exception as e:
@@ -1336,9 +1383,17 @@ def download_optimized():
 
         resume_file = request.files['resume']
         job_description = request.form['jobDescription']
+        extra_keywords = request.form.get('extraKeywords', '')  # Get extra keywords from request
         company_name = request.form.get('companyName', '').strip()
         job_role = request.form.get('jobRole', '').strip()
         export_format = request.form.get('exportFormat', 'docx').lower()
+        
+        # Debug logging for keywords
+        logger.info(f"Download endpoint - Received extraKeywords: '{extra_keywords}'")
+        logger.info(f"Download endpoint - All form data keys: {list(request.form.keys())}")
+        for key, value in request.form.items():
+            if 'keyword' in key.lower():
+                logger.info(f"Download endpoint - Keyword parameter '{key}': '{value}'")
 
         # Save uploaded file to a temp location
         with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
@@ -1351,9 +1406,27 @@ def download_optimized():
         # Use the new technical keyword extraction that preserves case
         keywords = extract_technical_keywords(job_description)
         missing_keywords = [kw for kw in keywords if kw.lower() not in full_text.lower()]
+        
+        # Process extra keywords from user selection
+        extra_keywords_list = [s.strip() for s in re.split(r'[;,/]|\\band\\b|\\&', extra_keywords) if s.strip()]
+        logger.info(f"Download endpoint - Processed extra keywords: {extra_keywords_list}")
+        
+        # Combine job keywords and extra keywords
+        all_keywords = missing_keywords + extra_keywords_list
+        unique_keywords = []
+        seen = set()
+        for kw in all_keywords:
+            if kw.lower() not in seen:
+                unique_keywords.append(kw)
+                seen.add(kw.lower())
+        
+        logger.info(f"Download endpoint - Job keywords: {keywords}")
+        logger.info(f"Download endpoint - Missing job keywords: {missing_keywords}")
+        logger.info(f"Download endpoint - Extra keywords: {extra_keywords_list}")
+        logger.info(f"Download endpoint - All unique keywords to add: {unique_keywords}")
 
-        # Insert missing keywords into existing Skills section
-        doc = insert_keywords_into_sections(doc, missing_keywords)
+        # Insert keywords into existing Skills section
+        doc = insert_keywords_into_sections(doc, unique_keywords)
 
         # Handle different export formats
         if export_format == 'txt':
