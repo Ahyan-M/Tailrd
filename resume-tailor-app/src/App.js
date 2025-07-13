@@ -7,6 +7,7 @@ import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
 import ResumeOptimizer from './pages/ResumeOptimizer';
 import JobTracker from './pages/JobTracker';
+import ATSGuide from './pages/ATSGuide';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Contact from './pages/Contact';
@@ -1175,6 +1176,10 @@ function App() {
           updateApplicationStatus={updateApplicationStatus}
           deleteApplication={deleteApplication}
         />
+      )}
+
+      {currentPage === 'ats-guide' && (
+        <ATSGuide darkMode={darkMode} />
       )}
 
       {/* Toast Container */}

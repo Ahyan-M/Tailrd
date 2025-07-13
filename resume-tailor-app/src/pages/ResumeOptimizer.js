@@ -193,39 +193,49 @@ const ResumeOptimizer = ({
     <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
       {/* Loading Overlay */}
       {optimizing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl`}>
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className={`${darkMode ? 'bg-black' : 'bg-white'} rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl`}>
             <div className="mb-6">
-              <div className="w-16 h-16 mx-auto mb-4">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <div className={`animate-spin rounded-full h-16 w-16 border-b-2 ${darkMode ? 'border-gray-300' : 'border-gray-800'}`}></div>
               </div>
-              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Optimizing Your Resume
-              </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {processingStage && getStageMessage(processingStage)}
-              </p>
+              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Optimizing Your Resume</h3>
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{processingStage && getStageMessage(processingStage)}</p>
             </div>
-            
-            {/* Progress indicator */}
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+            {/* Progress indicator with shimmer */}
+            <div className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} rounded-full h-2 mb-4 overflow-hidden`}>
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-1000 ease-out"
-                style={{ 
-                  width: `${getProgressPercentage()}%`,
-                }}
-              ></div>
+                className={`h-2 rounded-full relative shimmer-bar ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}
+                style={{ width: `${getProgressPercentage()}%` }}
+              >
+                <div className="shimmer-effect"></div>
+              </div>
             </div>
-            
+            {/* Animated dots in theme */}
             <div className="flex justify-center space-x-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`}></div>
+              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`} style={{ animationDelay: '0.1s' }}></div>
+              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`} style={{ animationDelay: '0.2s' }}></div>
             </div>
-            
-            <p className={`text-xs mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Please don't close this window while we process your resume...
-            </p>
+            <p className={`text-xs mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Please don't close this window while we process your resume...</p>
+            {/* Shimmer animation style */}
+            <style>{`
+              .shimmer-bar {
+                position: relative;
+                overflow: hidden;
+              }
+              .shimmer-effect {
+                position: absolute;
+                top: 0; left: 0; height: 100%; width: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                animation: shimmer 1.5s infinite;
+                z-index: 2;
+              }
+              @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+              }
+            `}</style>
           </div>
         </div>
       )}
@@ -520,9 +530,6 @@ const ResumeOptimizer = ({
                           {optimizing || finalizing ? 'Processing...' : 'Optimize Resume'}
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        This will optimize your resume with job keywords + selected keywords
-                      </p>
                     </div>
                   )}
                 </div>
@@ -535,19 +542,6 @@ const ResumeOptimizer = ({
                     <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Suggested Keywords
                     </h3>
-                    <button
-                      onClick={fetchSuggestions}
-                      disabled={!atsScores}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 ${
-                        !atsScores
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : darkMode 
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      Get Keywords
-                    </button>
                   </div>
 
                   {suggestedKeywords.length > 0 ? (
@@ -592,14 +586,6 @@ const ResumeOptimizer = ({
                       <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {atsScores ? 'Click "Get Keywords" to see suggested keywords from the job description' : 'Optimize your resume first to get keyword suggestions'}
                       </p>
-                      {atsScores && (
-                        <button
-                          onClick={fetchSuggestions}
-                          className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-all duration-300"
-                        >
-                          Get Keywords
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -625,7 +611,7 @@ const ResumeOptimizer = ({
         {/* Step 4: Download or Error */}
         {currentStep === 4 && (
           <div className="space-y-8">
-            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-8 shadow-sm`}>
+            <div className={`${darkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border rounded-xl p-8`}>
               <div className="text-center">
                 {optimizationError ? (
                   <>
@@ -662,6 +648,7 @@ const ResumeOptimizer = ({
                   </>
                 ) : (
                   <>
+
                     <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimized Successfully!</h2>
                     <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your resume has been optimized for maximum ATS compatibility</p>
                     {atsScores && (
@@ -675,13 +662,14 @@ const ResumeOptimizer = ({
                     <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
                       <button
                         onClick={handleDownload}
-                        className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300"
+                        className="px-8 py-4 bg-white text-black border border-gray-300 hover:bg-gray-100 font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
                       >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
                         Download Resume
                       </button>
                       <button
                         onClick={saveJobApplication}
-                        className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+                        className="px-8 py-4 bg-black text-white hover:bg-gray-900 font-medium rounded-lg transition-all duration-300"
                       >
                         Save to Applications
                       </button>
@@ -700,7 +688,7 @@ const ResumeOptimizer = ({
                   }}
                   className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
                     darkMode 
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700' 
+                      ? 'bg-gray-900 text-gray-200 hover:bg-gray-800 border border-gray-800' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                   }`}
                 >

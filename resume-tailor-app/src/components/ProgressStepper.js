@@ -70,7 +70,7 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
                   currentStep > step.id
                     ? 'bg-green-500 border-green-500 text-white shadow-lg'
                     : currentStep === step.id
-                    ? 'bg-blue-500 border-blue-500 text-white shadow-lg animate-pulse'
+                    ? 'bg-gray-200 border-gray-300 text-gray-900 shadow-lg'
                     : 'bg-gray-200 border-gray-300 text-gray-500'
                 }`}
               >
@@ -84,7 +84,7 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
               </div>
               <div className="mt-2 text-center">
                 <p className={`text-sm font-medium transition-all duration-300 ${
-                  currentStep >= step.id ? 'text-gray-900 dark:text-white' : 'text-gray-500'
+                  currentStep > step.id ? 'text-black' : currentStep === step.id ? 'text-gray-900' : 'text-gray-500'
                 }`}>
                   {step.name}
                 </p>
@@ -141,17 +141,7 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
         </div>
       )}
       
-      {/* Success message when optimization is complete */}
-      {!loading && currentStep === 4 && (
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center space-x-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded-full">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="font-medium">Optimization Complete!</span>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

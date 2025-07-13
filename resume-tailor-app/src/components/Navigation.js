@@ -14,7 +14,8 @@ const Navigation = ({
   const pages = [
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'resume-optimizer', name: 'Resume Optimizer' },
-    { id: 'job-tracker', name: 'Job Tracker' }
+    { id: 'job-tracker', name: 'Job Tracker' },
+    { id: 'ats-guide', name: 'ATS Guide' }
   ];
 
   // Handle logo click: go to dashboard and reload
@@ -59,15 +60,25 @@ const Navigation = ({
             {pages.map((page) => (
               <button
                 key={page.id}
-                onClick={() => setCurrentPage(page.id)}
-                className={`px-3 py-1 text-base font-medium border-b-2 transition-all duration-200 ${
+                onClick={() => {
+                  setCurrentPage(page.id);
+                }}
+                className={`px-3 py-1 text-base font-medium border-b-2 transition-all duration-200 cursor-pointer ${
                   currentPage === page.id
                     ? darkMode 
                       ? 'border-blue-400 text-white' 
                       : 'border-blue-600 text-gray-900'
                     : 'border-transparent ' + (darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                 }`}
-                style={{ background: 'none', borderRadius: 0 }}
+                style={{
+                  background: 'none',
+                  borderRadius: 0,
+                  position: 'relative',
+                  zIndex: 1,
+                  pointerEvents: 'auto',
+                  userSelect: 'none',
+                  minWidth: 'fit-content'
+                }}
               >
                 {page.name}
               </button>
