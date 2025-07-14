@@ -1205,6 +1205,8 @@ function App() {
       {/* Footer */}
       <footer className="w-full py-6 text-center text-sm bg-black text-white mt-12">
         <button className="mx-2 underline text-white" onClick={() => setFooterPage('privacy')}>Privacy Policy</button>
+        <button className="mx-2 underline text-white" onClick={() => setFooterPage('terms')}>Terms of Service</button>
+        <button className="mx-2 underline text-white" onClick={() => setFooterPage('contact')}>Contact</button> 
       </footer>
 
       {/* Render footer pages if selected */}
