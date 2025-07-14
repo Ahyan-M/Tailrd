@@ -1209,8 +1209,6 @@ function App() {
 
       {/* Render footer pages if selected */}
       {footerPage === 'privacy' && <PrivacyPolicy />}
-      {footerPage === 'terms' && <TermsOfService />}
-      {footerPage === 'contact' && <Contact />}
 
       <Analytics />
     </div>
