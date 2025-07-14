@@ -1203,10 +1203,8 @@ function App() {
       />
 
       {/* Footer */}
-      <footer className="w-full py-6 text-center text-sm text-gray-500 bg-gray-50 border-t dark:bg-gray-900 dark:text-gray-400 mt-12">
-        <button className="mx-2 underline" onClick={() => setFooterPage('privacy')}>Privacy Policy</button>
-        <button className="mx-2 underline" onClick={() => setFooterPage('terms')}>Terms of Service</button>
-        <button className="mx-2 underline" onClick={() => setFooterPage('contact')}>Contact</button>
+      <footer className="w-full py-6 text-center text-sm bg-black text-white mt-12">
+        <button className="mx-2 underline text-white" onClick={() => setFooterPage('privacy')}>Privacy Policy</button>
       </footer>
 
       {/* Render footer pages if selected */}

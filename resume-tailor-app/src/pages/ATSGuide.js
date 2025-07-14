@@ -22,16 +22,7 @@ const ATSGuide = ({ darkMode }) => {
         </h2>
         <div className="space-y-4">
           <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Tailrd was created by Ahyan and Nehal with a shared vision to simplify and streamline the job application journey. We noticed that job seekers often juggle too many tools, such as editing resumes in Word, tracking progress in spreadsheets, using separate AI tools for keyword suggestions, and applying through entirely different platforms. It felt messy and overwhelming. So we built Tailrd, a single platform that combines smart resume optimization, real-time ATS scoring, and job tracking all in one place. Everything you need to build a strong application, without the chaos.
-
-
-
-
-
-
-
-
-</p>
+          Tailrd was created by Ahyan and Nehal with a shared vision to simplify and streamline the job application journey. We noticed that job seekers often juggle too many tools, such as editing resumes in Word, tracking progress in spreadsheets, using separate AI tools for keyword suggestions, and applying through entirely different platforms. It felt messy and overwhelming. So we built Tailrd, a single platform that combines smart resume optimization, real-time ATS scoring, and job tracking all in one place. Everything you need to build a strong application, without the chaos.</p>
           
           <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Our mission with Tailrd is to empower job seekers everywhere with a smarter and more efficient way to navigate the modern job market, all from one centralized platform.
