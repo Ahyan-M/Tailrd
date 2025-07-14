@@ -90,9 +90,7 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
                 </p>
                 {currentStep === step.id && loading && processingStage && (
                   <div className="mt-1">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 animate-pulse font-medium">
-                      {getStageIcon(processingStage)} {getStageMessage(processingStage)}
-                    </p>
+                    
                   </div>
                 )}
               </div>
@@ -112,14 +110,14 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
       {loading && (
         <div className="mt-8">
           <div className="relative">
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-black rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-1000 ease-out relative"
+                className="bg-black h-3 rounded-full transition-all duration-1000 ease-out relative"
                 style={{ 
                   width: `${getProgressPercentage()}%`,
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+                {/* Removed shimmer/gradient for solid black */}
               </div>
             </div>
             <div className="mt-3 text-center">
@@ -131,12 +129,11 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
               </p>
             </div>
           </div>
-          
           {/* Additional loading indicators */}
           <div className="mt-4 flex justify-center space-x-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-black rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           </div>
         </div>
       )}

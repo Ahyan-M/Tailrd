@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
@@ -38,6 +38,16 @@ const ResumeOptimizer = ({
   const [optimizing, setOptimizing] = useState(false);
   const [processingStage, setProcessingStage] = useState('');
   const [optimizationError, setOptimizationError] = useState('');
+  const [lastOptimizedKeywords, setLastOptimizedKeywords] = useState([]);
+  const [keywordsChanged, setKeywordsChanged] = useState(false);
+
+  // Track changes to selectedKeywords
+  useEffect(() => {
+    // Compare arrays (order-insensitive, by value)
+    const current = [...selectedKeywords].sort().join(',');
+    const last = [...lastOptimizedKeywords].sort().join(',');
+    setKeywordsChanged(current !== last && selectedKeywords.length > 0);
+  }, [selectedKeywords, lastOptimizedKeywords]);
 
   const steps = [
     { id: 1, name: 'Upload Resume', icon: <MemoIcon width={22} height={22} /> },
@@ -94,7 +104,10 @@ const ResumeOptimizer = ({
       setTimeout(() => {
         // Move to step 4 (download) after optimization
         setOptimizing(false);
-        setCurrentStep(4);
+        // After optimizing, update lastOptimizedKeywords to a sorted version
+        setLastOptimizedKeywords([...selectedKeywords].sort());
+        // Do NOT auto-advance to step 4
+        // setCurrentStep(4);
       }, 500);
       
     } catch (error) {
@@ -192,54 +205,7 @@ const ResumeOptimizer = ({
   return (
     <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
       {/* Loading Overlay */}
-      {optimizing && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className={`${darkMode ? 'bg-black' : 'bg-white'} rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl`}>
-            <div className="mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <div className={`animate-spin rounded-full h-16 w-16 border-b-2 ${darkMode ? 'border-gray-300' : 'border-gray-800'}`}></div>
-              </div>
-              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Optimizing Your Resume</h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{processingStage && getStageMessage(processingStage)}</p>
-            </div>
-            {/* Progress indicator with shimmer */}
-            <div className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} rounded-full h-2 mb-4 overflow-hidden`}>
-              <div 
-                className={`h-2 rounded-full relative shimmer-bar ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}
-                style={{ width: `${getProgressPercentage()}%` }}
-              >
-                <div className="shimmer-effect"></div>
-              </div>
-            </div>
-            {/* Animated dots in theme */}
-            <div className="flex justify-center space-x-1">
-              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`}></div>
-              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`} style={{ animationDelay: '0.1s' }}></div>
-              <div className={`w-2 h-2 rounded-full animate-bounce ${darkMode ? 'bg-gray-300' : 'bg-gray-800'}`} style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <p className={`text-xs mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Please don't close this window while we process your resume...</p>
-            {/* Shimmer animation style */}
-            <style>{`
-              .shimmer-bar {
-                position: relative;
-                overflow: hidden;
-              }
-              .shimmer-effect {
-                position: absolute;
-                top: 0; left: 0; height: 100%; width: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-                animation: shimmer 1.5s infinite;
-                z-index: 2;
-              }
-              @keyframes shimmer {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(100%); }
-              }
-            `}</style>
-          </div>
-        </div>
-      )}
-
+      {/* Modal overlay removed: do not render anything here when optimizing */}
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
@@ -501,13 +467,21 @@ const ResumeOptimizer = ({
                         <button
                           onClick={handleOptimize}
                           disabled={optimizing || finalizing}
-                          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                            optimizing || finalizing
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}
+                          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${optimizing || finalizing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}
                         >
-                          {optimizing || finalizing ? 'Optimizing...' : `Optimize with ${selectedKeywords.length} Selected Keywords`}
+                          {keywordsChanged
+                            ? 'Optimize Again with Selected Keywords'
+                            : optimizing || finalizing
+                              ? 'Optimizing...'
+                              : `Optimize with ${selectedKeywords.length} Selected Keywords`}
+                        </button>
+                        {/* New button to go to download page */}
+                        <button
+                          onClick={() => setCurrentStep(4)}
+                          className="flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 bg-black text-white hover:bg-gray-900"
+                          disabled={optimizing || finalizing || !atsScores}
+                        >
+                          Go to Download Page
                         </button>
                       </div>
                     </div>
