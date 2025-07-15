@@ -1,6 +1,8 @@
 import React from 'react';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle.svg';
 import { ReactComponent as CircleXmarkIcon } from '../assets/icons/circle-xmark.svg';
+import profilePic from '../assets/icons/pic.jpg';
+import partnerPic from '../assets/icons/1732677808479.jpg';
 
 const ATSGuide = ({ darkMode }) => {
   return (
@@ -8,7 +10,7 @@ const ATSGuide = ({ darkMode }) => {
       {/* Hero Section */}
       <div className="text-center mb-12">
         <h1 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          ATS Guide & About Tailrd
+          Learn & About Tailrd
         </h1>
         <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Your complete guide to optimizing resumes for Applicant Tracking Systems
@@ -17,17 +19,24 @@ const ATSGuide = ({ darkMode }) => {
 
       {/* About Us Section */}
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-8 mb-8`}>
-        <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          Our Story
-        </h2>
-        <div className="space-y-4">
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Tailrd was created by Ahyan Mehta and Nehal Huda with a shared vision to simplify and streamline the job application journey. We noticed that job seekers often juggle too many tools, such as editing resumes in Word, tracking progress in spreadsheets, using separate AI tools for keyword suggestions, and applying through entirely different platforms. It felt messy and overwhelming. So we built Tailrd, a single platform that combines smart resume optimization, real-time ATS scoring, and job tracking all in one place. Everything you need to build a strong application, without the chaos.</p>
-          
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Our mission with Tailrd is to empower job seekers everywhere with a smarter and more efficient way to navigate the modern job market, all from one centralized platform.
-
-          </p>
+        <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>About Us</h2>
+        <div className="space-y-4 mb-8">
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Tailrd was created by Ahyan Mehta and Nehal Huda with a shared vision to simplify and streamline the job application journey. We noticed that job seekers often juggle too many tools, such as editing resumes in Word, tracking progress in spreadsheets, using separate AI tools for keyword suggestions, and applying through entirely different platforms. It felt messy and overwhelming. So we built Tailrd, a single platform that combines smart resume optimization, real-time ATS scoring, and job tracking all in one place. Everything you need to build a strong application, without the chaos.</p>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Our mission with Tailrd is to empower job seekers everywhere with a smarter and more efficient way to navigate the modern job market, all from one centralized platform.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
+          {/* Profile 1 */}
+          <div className="flex flex-col items-center">
+            <img src={profilePic} alt="Profile 1" className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 mb-3" />
+            <div className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Ahyan Mehta</div>
+            <a href="https://www.linkedin.com/in/ahyanmehta1/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline mt-1">LinkedIn</a>
+          </div>
+          {/* Profile 2 */}
+          <div className="flex flex-col items-center">
+            <img src={partnerPic} alt="Profile 2" className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 mb-3" />
+            <div className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Nehal Huda</div>
+            <a href="https://www.linkedin.com/in/nehalhuda/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline mt-1">LinkedIn</a>
+          </div>
         </div>
       </div>
 
@@ -142,7 +151,6 @@ const ATSGuide = ({ darkMode }) => {
           </div>
         </div>
       </div>
-
       
     </div>
   );

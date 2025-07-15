@@ -44,19 +44,21 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
   };
 
   const getProgressPercentage = () => {
-    if (!loading) return 0;
-    
-    const stageProgress = {
-      'uploading': 10,
-      'analyzing': 25,
-      'extracting': 40,
-      'scoring': 60,
-      'optimizing': 80,
-      'finalizing': 95,
-      'preparing': 100
-    };
-    
-    return stageProgress[processingStage] || 0;
+    if (loading) {
+      const stageProgress = {
+        'uploading': 10,
+        'analyzing': 25,
+        'extracting': 40,
+        'scoring': 60,
+        'optimizing': 80,
+        'finalizing': 95,
+        'preparing': 100
+      };
+      return stageProgress[processingStage] || 0;
+    } else {
+      // Progress based on current step (e.g., step 3 of 4 = 75%)
+      return Math.max(0, Math.min(100, ((currentStep - 1) / (steps.length - 1)) * 100));
+    }
   };
 
   return (
@@ -122,7 +124,7 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
             </div>
             <div className="mt-3 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                Step {currentStep} of {steps.length} - {getStageMessage(processingStage)}
+                Step {currentStep} of {steps.length}{processingStage ? ` - ${getStageMessage(processingStage)}` : ''}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                 This may take a few moments depending on your file size...

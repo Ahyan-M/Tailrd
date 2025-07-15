@@ -15,7 +15,7 @@ const Navigation = ({
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'resume-optimizer', name: 'Resume Optimizer' },
     { id: 'job-tracker', name: 'Job Tracker' },
-    { id: 'ats-guide', name: 'ATS Guide' }
+    { id: 'learn-about', name: 'Learn & About' }
   ];
 
   // Handle logo click: go to dashboard and reload

@@ -376,15 +376,11 @@ function App() {
       console.error("Error fetching suggestions:", error);
       
       // Handle specific error types
-      if (error.name === 'AbortError') {
-        toast.error("Keyword suggestions timed out. Please try again.");
-      } else if (error.message.includes('File too large')) {
+       if (error.message.includes('File too large')) {
         toast.error("File is too large for keyword suggestions. Please upload a smaller resume file.");
       } else if (error.message.includes('Job description too long')) {
         toast.error("Job description is too long for keyword suggestions. Please shorten it.");
-      } else {
-        toast.error("Error fetching keyword suggestions. Please try again.");
-      }
+      } 
       
       setSuggestedKeywords([]);
     }
@@ -1171,7 +1167,7 @@ function App() {
         />
       )}
 
-      {currentPage === 'ats-guide' && (
+      {currentPage === 'learn-about' && (
         <ATSGuide darkMode={darkMode} />
       )}
 
@@ -1188,7 +1184,7 @@ function App() {
         pauseOnHover
         theme="light"
         toastClassName={({ type }) => {
-          const base = 'flex items-center rounded-xl shadow-md border-0 px-8 py-5 text-base md:text-lg font-sans max-w-lg w-full animate-fade-in relative mb-4 pr-12';
+          const base = 'flex items-center rounded-xl shadow-md border-0 px-5 py-3 text-sm md:text-base font-sans max-w-md w-full animate-fade-in relative mb-3 pr-8';
           switch (type) {
             case 'success':
               return `${base} bg-green-100 text-green-900`;
@@ -1203,7 +1199,7 @@ function App() {
           }
         }}
         bodyClassName={() =>
-          'flex items-center w-full gap-3'
+          'flex items-center w-full gap-2 text-sm md:text-base'
         }
         progressClassName={() =>
           'bg-black bg-opacity-10 rounded-full'
@@ -1211,16 +1207,16 @@ function App() {
         closeButton={({ closeToast }) => (
           <button
             onClick={closeToast}
-            className="absolute top-3 right-3 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-30"
+            className="absolute top-2 right-2 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-30"
             aria-label="Dismiss notification"
           >
-            <svg className="w-5 h-5 text-inherit" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-inherit" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         )}
         icon={({ type }) => {
-          const iconClass = "w-7 h-7 mr-3 flex-shrink-0";
+          const iconClass = "w-5 h-5 mr-2 flex-shrink-0";
           switch (type) {
             case 'success':
               return (
@@ -1254,7 +1250,7 @@ function App() {
         }}
         style={{
           zIndex: 9999,
-          '--toastify-spacing': '96px',
+          '--toastify-spacing': '72px',
         }}
       />
 

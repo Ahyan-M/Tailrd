@@ -527,29 +527,29 @@ const ResumeOptimizer = ({
                         <button
                           key={index}
                           onClick={() => handleKeywordToggle(keyword)}
-                          className={`w-full text-left p-3 rounded-lg border transition-all duration-300 ${
-                            selectedKeywords.includes(keyword)
+                          className={`w-full text-left p-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400
+                            ${selectedKeywords.includes(keyword)
                               ? darkMode 
-                                ? 'bg-green-700 border-green-500 text-white' 
-                                : 'bg-green-100 border-green-400 text-green-800'
+                                ? 'bg-green-600 border-green-400 text-white animate-keyword-pop' 
+                                : 'bg-green-500 border-green-600 text-white animate-keyword-pop' // More contrast in light mode
                               : darkMode 
-                                ? 'bg-gray-700 border-gray-600 hover:border-gray-500' 
-                                : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                          }`}
+                                ? 'bg-gray-700 border-gray-600 hover:border-green-400 hover:bg-green-900 text-white' 
+                                : 'bg-white border-gray-300 hover:border-green-400 hover:bg-green-50 text-gray-900'}
+                          `}
+                          style={{
+                            boxShadow: selectedKeywords.includes(keyword) ? '0 2px 12px 0 rgba(34,197,94,0.15)' : undefined,
+                            transition: 'transform 0.18s cubic-bezier(0.4,0,0.2,1), background 0.18s',
+                          }}
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`font-medium ${selectedKeywords.includes(keyword) ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {keyword}
-                            </span>
-                            <span className={`text-sm ${selectedKeywords.includes(keyword) ? 'text-white' : 'text-gray-400'}`}>
-                              {selectedKeywords.includes(keyword) ? '✓ Selected' : 'Click to add'}
-                            </span>
+                            <span className={`font-medium ${selectedKeywords.includes(keyword) ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'}`}>{keyword}</span>
+                            <span className={`text-sm ${selectedKeywords.includes(keyword) ? 'text-white' : 'text-gray-400'}`}>{selectedKeywords.includes(keyword) ? '✓ Selected' : 'Click to add'}</span>
                           </div>
                         </button>
                       ))}
                       {selectedKeywords.length > 0 && (
-                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                        <div className="mt-4 p-3 bg-black border border-black rounded-lg">
+                          <p className="text-sm text-white">
                             <strong>{selectedKeywords.length} keywords selected.</strong> Click "Optimize Again" to include them in your resume.
                           </p>
                         </div>
