@@ -304,7 +304,6 @@ function App() {
         console.log(`Processing completed in ${processingTime}ms`, data.performance_metrics);
       }
 
-      toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
     } catch (error) {
       console.error("Error optimizing resume:", error);
       
@@ -492,7 +491,6 @@ function App() {
       const url = window.URL.createObjectURL(blob);
       setFinalDownloadUrl(url);
       
-      toast.success(`Resume finalized successfully in ${Math.round(processingTime/1000)}s!`);
     } catch (error) {
       console.error("Error finalizing resume:", error);
       
@@ -559,7 +557,6 @@ function App() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       
-      toast.success("Resume downloaded successfully!");
     } catch (error) {
       console.error("Error downloading file:", error);
       toast.error("Error downloading file. Please try again.");
@@ -638,7 +635,6 @@ function App() {
         setOptimizedAtsScore(data.optimized_ats_score);
         setAtsImprovement(data.optimized_ats_score.improvement || 0);
         
-        toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
       } else {
         // Fallback to mock scores if backend doesn't return proper data
         const mockAtsScore = {
@@ -654,7 +650,6 @@ function App() {
         setOriginalAtsScore({ total_score: 75 });
         setAtsImprovement(10);
         
-        toast.success(`Resume optimized successfully in ${Math.round(processingTime/1000)}s!`);
       }
     } catch (error) {
       console.error("Error optimizing resume:", error);
@@ -743,7 +738,6 @@ function App() {
         setOptimizedAtsScore(data.optimized_ats_score);
         setAtsImprovement(data.optimized_ats_score.improvement || 0);
         
-        toast.success(`Fast optimization completed in ${Math.round(processingTime/1000)}s!`);
       } else {
         // Fallback scores for fast mode
         const fastAtsScore = {
@@ -759,7 +753,6 @@ function App() {
         setOriginalAtsScore({ total_score: 72 });
         setAtsImprovement(10);
         
-        toast.success(`Fast optimization completed in ${Math.round(processingTime/1000)}s!`);
       }
     } catch (error) {
       console.error("Error in fast optimization:", error);
@@ -1193,13 +1186,76 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored"
-        toastClassName={() =>
-          'rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-6 py-4 text-base font-medium max-w-xs w-full animate-fade-in'
-        }
+        theme="light"
+        toastClassName={({ type }) => {
+          const base = 'flex items-center rounded-xl shadow-md border-0 px-8 py-5 text-base md:text-lg font-sans max-w-lg w-full animate-fade-in relative mb-4 pr-12';
+          switch (type) {
+            case 'success':
+              return `${base} bg-green-100 text-green-900`;
+            case 'error':
+              return `${base} bg-red-100 text-red-900`;
+            case 'warning':
+              return `${base} bg-yellow-100 text-yellow-900`;
+            case 'info':
+              return `${base} bg-blue-100 text-blue-900`;
+            default:
+              return `${base} bg-gray-100 text-gray-900`;
+          }
+        }}
         bodyClassName={() =>
-          'flex items-center w-full'
+          'flex items-center w-full gap-3'
         }
+        progressClassName={() =>
+          'bg-black bg-opacity-10 rounded-full'
+        }
+        closeButton={({ closeToast }) => (
+          <button
+            onClick={closeToast}
+            className="absolute top-3 right-3 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-30"
+            aria-label="Dismiss notification"
+          >
+            <svg className="w-5 h-5 text-inherit" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        icon={({ type }) => {
+          const iconClass = "w-7 h-7 mr-3 flex-shrink-0";
+          switch (type) {
+            case 'success':
+              return (
+                <svg className={iconClass + ' text-green-600'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              );
+            case 'error':
+              return (
+                <svg className={iconClass + ' text-red-600'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 9l-6 6m0-6l6 6" />
+                </svg>
+              );
+            case 'warning':
+              return (
+                <svg className={iconClass + ' text-yellow-600'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M4.93 19h14.14a2 2 0 001.74-2.99l-7.07-12.25a2 2 0 00-3.48 0L3.19 16.01A2 2 0 004.93 19z" />
+                </svg>
+              );
+            case 'info':
+              return (
+                <svg className={iconClass + ' text-blue-600'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+                </svg>
+              );
+            default:
+              return null;
+          }
+        }}
+        style={{
+          zIndex: 9999,
+          '--toastify-spacing': '96px',
+        }}
       />
 
       {/* Footer */}
