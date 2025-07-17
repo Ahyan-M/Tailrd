@@ -39,20 +39,20 @@ const Navigation = ({
   }, []);
 
   return (
-    <nav className={`border-b ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}> 
+    <nav className={`border-b transition-all duration-300 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}> 
       <div className="max-w-full mx-auto px-8 sm:px-16 lg:px-32">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <button
-            className="flex items-center space-x-2 focus:outline-none"
+            className="flex items-center space-x-2 focus:outline-none transition-transform duration-200 hover:scale-110 active:scale-95"
             onClick={handleLogoClick}
             style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
             aria-label="Go to Dashboard"
           >
-            <div className={`w-8 h-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} rounded flex items-center justify-center`}>
-              <TailrdIcon className="w-6 h-6" />
+            <div className={`w-8 h-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} rounded flex items-center justify-center transition-all duration-200 hover:shadow-md`}>
+              <TailrdIcon className="w-6 h-6 transition-transform duration-200 hover:scale-125" />
             </div>
-            <span className={`text-lg font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</span>
+            <span className={`text-lg font-extrabold tracking-tight transition-colors duration-200 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</span>
           </button>
 
           {/* Navigation Links */}
@@ -63,12 +63,12 @@ const Navigation = ({
                 onClick={() => {
                   setCurrentPage(page.id);
                 }}
-                className={`px-3 py-1 text-base font-medium border-b-2 transition-all duration-200 cursor-pointer ${
+                className={`px-3 py-1 text-base font-medium border-b-2 transition-all duration-300 cursor-pointer relative group ${
                   currentPage === page.id
                     ? darkMode 
-                      ? 'border-blue-400 text-white' 
-                      : 'border-blue-600 text-gray-900'
-                    : 'border-transparent ' + (darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
+                      ? 'border-black text-white' 
+                      : 'border-black text-gray-900'
+                    : 'border-transparent' + (darkMode ? ' text-gray-400 hover:text-white' : ' text-gray-600 hover:text-gray-900')
                 }`}
                 style={{
                   background: 'none',
@@ -81,13 +81,17 @@ const Navigation = ({
                 }}
               >
                 {page.name}
+                {/* Hover underline animation */}
+                <div className={`absolute bottom-0 left-0 h-0.5 bg-black transition-all duration-300 group-hover:w-full ${
+                  currentPage === page.id ? 'w-full' : 'w-0'
+                }`} />
               </button>
             ))}
 
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className={`ml-6 p-2 rounded transition-colors duration-200 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`ml-6 p-2 rounded transition-all duration-300 hover:scale-110 active:scale-95 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
               aria-label="Toggle dark mode"
             >
               {darkMode ? (
@@ -103,25 +107,29 @@ const Navigation = ({
             {user && (
               <div className="relative ml-8" ref={dropdownRef}>
                 <button
-                  className={`flex items-center space-x-2 px-3 py-1 rounded-full focus:outline-none ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
+                  className={`flex items-center space-x-2 px-3 py-1 rounded-full focus:outline-none transition-all duration-300 hover:scale-105 active:scale-95 ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
                   onClick={() => setDropdownOpen((open) => !open)}
                 >
-                  <div className={`w-7 h-7 ${darkMode ? 'bg-gray-900' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                  <div className={`w-7 h-7 ${darkMode ? 'bg-gray-900' : 'bg-gray-200'} rounded-full flex items-center justify-center transition-all duration-200 hover:shadow-md`}>
                     <span className="text-base font-bold">{username.charAt(0).toUpperCase()}</span>
                   </div>
-                  <span className="text-sm font-medium" style={{ maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{username}</span>
-                  <svg className="ml-1" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  <span className="text-sm font-medium transition-all duration-200" style={{ maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{username}</span>
+                  <svg className={`ml-1 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
-                {dropdownOpen && (
-                  <div className={`absolute right-0 mt-2 w-40 rounded-lg shadow-lg z-50 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-                    <button
-                      onClick={handleSignOut}
-                      className={`block w-full text-left px-4 py-3 text-sm rounded-lg transition-colors duration-200 ${darkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`}
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
+                <div className={`absolute right-0 mt-2 rounded-lg shadow-lg z-50 transition-all duration-300 transform origin-top-right ${
+                  dropdownOpen 
+                    ? 'opacity-100 scale-100' 
+                    : 'opacity-0 scale-95 translate-y-2 pointer-events-none'
+                } ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+                  <button
+                    onClick={handleSignOut}
+                    className={`block w-full text-left px-4 py-3 text-sm rounded-lg transition-all duration-200 hover:scale-105 ${
+                      darkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </div>
             )}
           </div>
