@@ -47,7 +47,7 @@ const Dashboard = ({
       }
     },
     {
-      title: "ATS Guide",
+      title: "Learn & About",
       description: "Learn about ATS optimization",
       icon: <CompassAltIcon width={32} height={32} />, 
       action: () => {
@@ -55,6 +55,12 @@ const Dashboard = ({
       }
     }
   ];
+
+  // Utility function to capitalize first letter
+  function capitalizeFirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6 lg:p-8">
@@ -155,7 +161,7 @@ const Dashboard = ({
                     app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {app.status}
+                    {capitalizeFirst(app.status)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-center">

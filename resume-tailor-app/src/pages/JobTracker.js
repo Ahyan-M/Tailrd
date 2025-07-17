@@ -7,6 +7,7 @@ import { ReactComponent as ChartLineUpIcon } from '../assets/icons/chart-line-up
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import Toast from '../components/Toast';
+import StatusDropdown from '../components/StatusDropdown';
 
 const statusOptions = [
   { value: 'applied', label: 'Applied', color: 'bg-gray-100 text-gray-700' },
@@ -29,6 +30,19 @@ const JobTracker = ({
 
   // Toast state
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  // Filter and sort state
+  const [filters, setFilters] = useState({
+    status: '',
+    atsScoreMin: '',
+    companyName: '',
+    appliedDate: '',
+  });
+
+  const [sortBy, setSortBy] = useState({
+    field: '',
+    direction: 'asc',
+  });
 
   // Automatically fetch job applications when component mounts
   useEffect(() => {
@@ -64,118 +78,327 @@ const JobTracker = ({
     }
   };
 
+  // Filter and sort functions
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  };
+
+  const handleSortChange = (field) => {
+    setSortBy(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      atsScoreMin: '',
+      companyName: '',
+      appliedDate: '',
+    });
+    setSortBy({
+      field: '',
+      direction: 'asc',
+    });
+  };
+
+  // Apply filters and sorting
+  const filteredAndSortedApplications = jobApplications
+    .filter(app => {
+      // Status filter
+      if (filters.status && app.status !== filters.status) return false;
+      
+      // ATS score filter
+      if (filters.atsScoreMin && app.optimized_ats_score < parseInt(filters.atsScoreMin)) return false;
+      
+      // Company name filter
+      if (filters.companyName && !app.company_name.toLowerCase().includes(filters.companyName.toLowerCase())) return false;
+      
+      // Applied date filter
+      if (filters.appliedDate) {
+        const appDate = new Date(app.created_at);
+        const filterDate = new Date();
+        
+        switch (filters.appliedDate) {
+          case 'latest':
+            // Show applications from last 7 days
+            filterDate.setDate(filterDate.getDate() - 7);
+            if (appDate < filterDate) return false;
+            break;
+          case 'oldest':
+            // Show applications older than 30 days
+            filterDate.setDate(filterDate.getDate() - 30);
+            if (appDate > filterDate) return false;
+            break;
+          default:
+            break;
+        }
+      }
+      
+      return true;
+    })
+    .sort((a, b) => {
+      if (!sortBy.field) return 0;
+      
+      let aValue, bValue;
+      
+      switch (sortBy.field) {
+        case 'improvement':
+          aValue = a.ats_improvement;
+          bValue = b.ats_improvement;
+          break;
+        case 'originalAts':
+          aValue = a.original_ats_score;
+          bValue = b.original_ats_score;
+          break;
+        case 'jobTitle':
+          aValue = a.job_title.toLowerCase();
+          bValue = b.job_title.toLowerCase();
+          break;
+        case 'companyName':
+          aValue = a.company_name.toLowerCase();
+          bValue = b.company_name.toLowerCase();
+          break;
+        case 'appliedDate':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortBy.direction === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+  // Check if any filters are active
+  const hasActiveFilters = Object.values(filters).some(value => value !== '') || sortBy.field !== '';
+
   return (
     <>
-      <div className="max-w-4xl mx-auto p-4 flex flex-col items-center justify-center bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto p-4 py-50h-screen">
         {/* Header */}
-        <div className="w-full text-left mb-8">
+        <div className="w-full text-left mb-6">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Job Applications</h1>
-          <p className="text-base text-gray-500">Minimal tracker for your job search progress</p>
+          <p className="text-base text-gray-500">Track and manage your job search progress</p>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-8">
-          <div className="rounded-xl p-4 bg-white shadow-sm flex flex-col items-center">
-            <div className="text-lg font-bold text-gray-900">{jobApplications.length}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full mb-6">
+          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-xl font-bold text-gray-900">{jobApplications.length}</div>
             <div className="text-xs text-gray-400">Total</div>
           </div>
-          <div className="rounded-xl p-4 bg-white shadow-sm flex flex-col items-center">
-            <div className="text-lg font-bold text-gray-900">{jobApplications.filter(app => app.status === 'interviewing').length}</div>
+          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'interviewing').length}</div>
             <div className="text-xs text-gray-400">Interviewing</div>
           </div>
-          <div className="rounded-xl p-4 bg-white shadow-sm flex flex-col items-center">
-            <div className="text-lg font-bold text-gray-900">{jobApplications.filter(app => app.status === 'offered').length}</div>
+          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'offered').length}</div>
             <div className="text-xs text-gray-400">Offers</div>
           </div>
-          <div className="rounded-xl p-4 bg-white shadow-sm flex flex-col items-center">
-            <div className="text-lg font-bold text-gray-900">{jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%</div>
+          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-xl font-bold text-gray-900">{jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%</div>
             <div className="text-xs text-gray-400">Avg ATS</div>
           </div>
         </div>
 
-        {/* Applications List */}
-        <div className="w-full flex flex-row items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">All Applications</h2>
-          <button
-            onClick={fetchJobApplications}
-            className="px-3 py-1 rounded-lg font-medium bg-white border border-gray-200 text-gray-500 hover:shadow transition-all duration-200"
-          >
-            Refresh
-          </button>
-        </div>
+        {/* Integrated Applications Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {/* Applications Header with Filters */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold text-gray-900">{hasActiveFilters ? 'Filtered Applications' : 'All Applications'}</h2>
+                {hasActiveFilters && (
+                  <span className="text-sm text-gray-500">
+                    Showing {filteredAndSortedApplications.length} of {jobApplications.length}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={fetchJobApplications}
+                  className="px-4 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
 
-        {dashboardLoading ? (
-          <div className="flex items-center justify-center py-12 w-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
-          </div>
-        ) : jobApplications.length === 0 ? (
-          <div className="mx-auto rounded-2xl border bg-white/80 border-gray-200 text-center shadow-sm" style={{ width: '100%', minHeight: '220px', padding: '2.5rem', margin: '0 auto' }}>
-            <div className="flex flex-col items-center">
-              <p className="text-base font-semibold mb-1">No applications yet</p>
-              <p className="text-sm text-gray-500">Optimize a resume to start tracking your applications!</p>
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="">All Statuses</option>
+                  {statusOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">ATS Score</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={filters.atsScoreMin}
+                  onChange={(e) => handleFilterChange('atsScoreMin', e.target.value)}
+                  placeholder="Min score"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Company</label>
+                <input
+                  type="text"
+                  value={filters.companyName}
+                  onChange={(e) => handleFilterChange('companyName', e.target.value)}
+                  placeholder="Search companies"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Applied Date</label>
+                <select
+                  value={filters.appliedDate}
+                  onChange={(e) => handleFilterChange('appliedDate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="">All Dates</option>
+                  <option value="latest">Latest (7 days)</option>
+                  <option value="oldest">Older (30 days)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sorting Options */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { field: 'jobTitle', label: 'Job Title' },
+                  { field: 'companyName', label: 'Company' },
+                  { field: 'improvement', label: 'Improvement %' },
+                  { field: 'originalAts', label: 'Original ATS' },
+                  { field: 'appliedDate', label: 'Applied Date' },
+                ].map(({ field, label }) => (
+                  <button
+                    key={field}
+                    onClick={() => handleSortChange(field)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      sortBy.field === field
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {label}
+                    {sortBy.field === field && (
+                      <span className="ml-1">
+                        {sortBy.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-5 w-full">
-            {jobApplications.map((app) => {
-              const statusObj = statusOptions.find(opt => opt.value === (app.status || 'applied')) || statusOptions[0];
-              return (
-                <div
-                  key={app.id}
-                  className="bg-white rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-5 gap-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-blue-100"
-                  style={{ minHeight: '100px' }}
-                >
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-left">
-                    <div className="flex flex-col flex-1">
-                      <span className="text-lg font-bold text-gray-900 leading-tight">{app.job_title}</span>
-                      <span className="text-base font-semibold text-gray-700">{app.company_name}</span>
-                      <span className="text-xs text-gray-400 font-light">Applied: {new Date(app.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex flex-row gap-6 mt-2 sm:mt-0">
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-400">Original ATS</span>
-                        <span className="text-base font-semibold text-gray-700">{app.original_ats_score}%</span>
-                      </div>
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-400">Optimized ATS</span>
-                        <span className="text-base font-semibold text-gray-700">{app.optimized_ats_score}%</span>
-                      </div>
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-400">Improvement</span>
-                        <span className={`text-base font-semibold ${app.ats_improvement > 0 ? 'text-green-600' : 'text-red-500'}`}>{app.ats_improvement > 0 ? '+' : ''}{app.ats_improvement}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-row items-center gap-2 mt-2 sm:mt-0">
-                    <div className={`flex items-center rounded-lg px-2 py-1 text-sm font-medium ${statusObj.color} transition-all duration-200`}
-                      style={{ minWidth: '120px' }}
-                    >
-                      <select
-                        value={app.status || 'applied'}
-                        onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                        className="bg-transparent outline-none border-none text-inherit font-medium w-full cursor-pointer focus:ring-0 focus:outline-none hover:bg-blue-50 transition-all duration-200"
-                        style={{ minWidth: '80px' }}
-                      >
-                        {statusOptions.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(app.id)}
-                      className="ml-2 p-2 rounded-full hover:bg-red-50 transition-colors duration-200 text-red-400 hover:text-red-600"
-                      title="Delete"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+
+          {/* Applications List */}
+          <div className="p-6">
+            {dashboardLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
+              </div>
+            ) : filteredAndSortedApplications.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="flex flex-col items-center">
+                  <p className="text-lg font-semibold mb-2">
+                    {jobApplications.length === 0 ? 'No applications yet' : 'No applications match your filters'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {jobApplications.length === 0 
+                      ? 'Optimize a resume to start tracking your applications!' 
+                      : 'Try adjusting your filters or clear them to see all applications.'
+                    }
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredAndSortedApplications.map((app) => {
+                  const statusObj = statusOptions.find(opt => opt.value === (app.status || 'applied')) || statusOptions[0];
+                  return (
+                    <div
+                      key={app.id}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-white"
+                    >
+                      <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-8 min-w-0">
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-lg font-bold text-gray-900 truncate">{app.job_title}</span>
+                          <span className="text-sm font-semibold text-gray-700 truncate">{app.company_name}</span>
+                          <span className="text-xs text-gray-400">Applied: {new Date(app.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex gap-8 flex-shrink-0 mr-8">
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-400">Original ATS</span>
+                            <span className="text-sm font-semibold text-gray-700">{app.original_ats_score}%</span>
+                          </div>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-400">Optimized ATS</span>
+                            <span className="text-sm font-semibold text-gray-700">{app.optimized_ats_score}%</span>
+                          </div>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-400">Improvement</span>
+                            <span className={`text-sm font-semibold ${app.ats_improvement > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {app.ats_improvement > 0 ? '+' : ''}{app.ats_improvement}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 mt-3 sm:mt-0 flex-shrink-0">
+                        <StatusDropdown
+                          value={app.status || 'applied'}
+                          onChange={(newStatus) => handleStatusUpdate(app.id, newStatus)}
+                          className="min-w-[140px]"
+                        />
+                        <button
+                          onClick={() => handleDelete(app.id)}
+                          className="p-2 rounded-full hover:bg-red-50 transition-colors duration-200 text-red-400 hover:text-red-600"
+                          title="Delete"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
       <Toast
         message={toast.message}
