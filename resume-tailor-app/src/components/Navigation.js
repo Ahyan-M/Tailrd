@@ -27,6 +27,17 @@ const Navigation = ({
   // Get username from user object
   const username = user?.user_metadata?.username || user?.username || user?.email?.split('@')[0] || '';
 
+  // Enhanced sign out handler with fallback
+  const handleSignOutClick = async () => {
+    try {
+      await handleSignOut();
+    } catch (error) {
+      console.error('Sign out failed, using fallback:', error);
+      // Force clear user state if the main sign out fails
+      window.location.reload();
+    }
+  };
+
   // Close dropdown on outside click
   React.useEffect(() => {
     function handleClickOutside(event) {
@@ -122,7 +133,7 @@ const Navigation = ({
                     : 'opacity-0 scale-95 translate-y-2 pointer-events-none'
                 } ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
                   <button
-                    onClick={handleSignOut}
+                    onClick={handleSignOutClick}
                     className={`block w-full text-left px-4 py-3 text-sm rounded-lg transition-all duration-200 hover:scale-105 ${
                       darkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
                     }`}

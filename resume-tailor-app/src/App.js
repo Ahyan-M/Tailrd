@@ -187,12 +187,82 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-    const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.log('Starting sign out process...');
+      
+      // Debug current auth state
+      const authState = await debugAuthState();
+      console.log('Auth state before sign out:', authState);
+      
+      // Check if user is authenticated before attempting sign out
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No active session found, clearing local state');
+        setUser(null);
+        toast.success("Signed out successfully!");
+        return;
+      }
+      
+      console.log('Calling supabase.auth.signOut()...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase sign out error:', error);
+        throw error;
+      }
+      
+      console.log('Sign out successful, clearing user state');
       setUser(null);
       toast.success("Signed out successfully!");
     } catch (error) {
-      toast.error("Error signing out: " + error.message);
+      console.error('Error during sign out:', error);
+      
+      // Handle specific error types
+      if (error.message?.includes('403')) {
+        toast.error("Authentication error: Session may have expired. Please refresh the page.");
+        // Force clear state for 403 errors
+        setUser(null);
+        window.location.reload();
+      } else if (error.message?.includes('network')) {
+        toast.error("Network error: Please check your connection and try again.");
+      } else {
+        toast.error("Error signing out: " + error.message);
+      }
+      
+      // Force clear user state even if sign out fails
+      setUser(null);
+    }
+  };
+
+  // Alternative sign out method for when the main one fails
+  const forceSignOut = () => {
+    console.log('Force signing out...');
+    setUser(null);
+    
+    // Clear any stored session data
+    try {
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+    } catch (e) {
+      console.log('Could not clear storage:', e);
+    }
+    
+    toast.success("Signed out successfully!");
+  };
+
+  // Debug authentication state
+  const debugAuthState = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      console.log('Current session:', session);
+      console.log('Current user:', user);
+      console.log('Local user state:', user);
+      
+      return { session, user };
+    } catch (error) {
+      console.error('Error getting auth state:', error);
+      return { session: null, user: null };
     }
   };
 
