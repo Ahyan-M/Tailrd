@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { supabase } from './supabase';
 import { API_ENDPOINTS } from './config';
@@ -915,8 +915,8 @@ function App() {
     }
   };
 
+  // Remove duplicate toast notifications for delete (only show in performDelete)
   const deleteApplication = async (id) => {
-    // Show confirmation toast with action buttons
     toast.info(
       <div>
         <div className="mb-2">Are you sure you want to delete this application?</div>
@@ -943,7 +943,7 @@ function App() {
         closeOnClick: false,
         draggable: false,
         closeButton: false,
-        position: "top-center",
+        position: "bottom-center",
       }
     );
   };
@@ -1243,8 +1243,8 @@ function App() {
 
       {/* Toast Container */}
       <ToastContainer
-        position="top-right"
-        autoClose={4000}
+        position="bottom-center"
+        autoClose={3500}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -1253,19 +1253,20 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
+        transition={Slide}
         toastClassName={({ type }) => {
-          const base = 'flex items-center rounded-xl shadow-md border-0 px-5 py-3 text-sm md:text-base font-sans max-w-md w-full animate-fade-in relative mb-3 pr-8';
+          const base = 'flex items-center rounded-xl shadow-md border-0 px-5 py-3 text-sm md:text-base font-sans max-w-md w-full animate-fade-in relative mb-3 pr-12';
           switch (type) {
             case 'success':
-              return `${base} bg-green-100 text-green-900`;
+              return `${base} bg-green-50 text-green-800`;
             case 'error':
-              return `${base} bg-red-100 text-red-900`;
+              return `${base} bg-red-50 text-red-800`;
             case 'warning':
-              return `${base} bg-yellow-100 text-yellow-900`;
+              return `${base} bg-yellow-50 text-yellow-800`;
             case 'info':
-              return `${base} bg-blue-100 text-blue-900`;
+              return `${base} bg-blue-50 text-blue-800`;
             default:
-              return `${base} bg-gray-100 text-gray-900`;
+              return `${base} bg-gray-50 text-gray-800`;
           }
         }}
         bodyClassName={() =>
@@ -1277,7 +1278,7 @@ function App() {
         closeButton={({ closeToast }) => (
           <button
             onClick={closeToast}
-            className="absolute top-2 right-2 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-30"
+            className="absolute top-3 right-3 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-30"
             aria-label="Dismiss notification"
           >
             <svg className="w-4 h-4 text-inherit" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

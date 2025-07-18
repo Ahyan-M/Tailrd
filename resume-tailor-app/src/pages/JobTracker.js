@@ -72,7 +72,7 @@ const JobTracker = ({
   const handleDelete = async (id) => {
     try {
       await deleteApplication(id);
-      showToast('Application deleted.', 'info');
+      // showToast('Application deleted.', 'info'); // Removed to avoid duplicate notification
     } catch (e) {
       showToast('Something went wrong.', 'error');
     }
@@ -234,7 +234,8 @@ const JobTracker = ({
                 )}
                 <button
                   onClick={fetchJobApplications}
-                  className="px-4 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 
+                    ${darkMode ? 'bg-black text-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100'}`}
                 >
                   Refresh
                 </button>
