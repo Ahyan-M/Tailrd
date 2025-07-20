@@ -51,7 +51,7 @@ const Dashboard = ({
       description: "Learn about ATS optimization",
       icon: <CompassAltIcon width={32} height={32} />, 
       action: () => {
-        setCurrentPage('ats-guide');
+        setCurrentPage('learn-about');
       }
     }
   ];

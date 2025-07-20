@@ -19,6 +19,26 @@ import { ReactComponent as ChartIcon } from './assets/icons/chart-line-up.svg';
 import { ReactComponent as BriefcaseIcon } from './assets/icons/briefcase.svg';
 import { ReactComponent as TailrdIcon } from './assets/icons/TailrdIcon.svg';
 
+// 1. Add password validation utility function at the top (after imports):
+const passwordRules = [
+  { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
+  { label: 'At least 1 uppercase letter', test: (pw) => /[A-Z]/.test(pw) },
+  { label: 'At least 1 lowercase letter', test: (pw) => /[a-z]/.test(pw) },
+  { label: 'At least 1 number', test: (pw) => /[0-9]/.test(pw) },
+  { label: 'At least 1 special character', test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw) },
+];
+
+function getPasswordStrength(pw) {
+  let score = 0;
+  passwordRules.forEach(rule => { if (rule.test(pw)) score++; });
+  if (pw.length === 0) return { label: '', color: '' };
+  if (score <= 2) return { label: 'Weak', color: 'red' };
+  if (score === 3) return { label: 'Medium', color: 'yellow' };
+  if (score === 4) return { label: 'Strong', color: 'green' };
+  if (score === 5) return { label: 'Very Strong', color: 'green' };
+  return { label: '', color: '' };
+}
+
 function App() {
   // Authentication state
   const [user, setUser] = useState(null);
@@ -72,8 +92,92 @@ function App() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  // Password visibility state
+  const [signupPasswordVisible, setSignupPasswordVisible] = useState(false);
+  const [signupConfirmPasswordVisible, setSignupConfirmPasswordVisible] = useState(false);
+  const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
+
   // Footer state
   const [footerPage, setFooterPage] = useState(null);
+
+  // Add state for forgot/reset password flow
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [resetPasswordToken, setResetPasswordToken] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+  const [forceShowResetForm, setForceShowResetForm] = useState(false);
+
+  // Add state for OAuth error
+  const [oauthError, setOauthError] = useState('');
+
+  // Handler for OAuth sign-in
+  const handleOAuthSignIn = async (provider) => {
+    setOauthError('');
+    try {
+      await supabase.auth.signInWithOAuth({ provider });
+    } catch (err) {
+      setOauthError('OAuth sign-in failed. Please try again.');
+    }
+  };
+
+  // Detect Supabase password reset token on app load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+    const type = urlParams.get('type');
+    const accessToken = urlParams.get('access_token');
+    if (type === 'recovery' && accessToken) {
+      setResetPasswordToken(accessToken);
+      setShowForgotPassword(false);
+      setForceShowResetForm(true); // Always show reset form
+      // Optionally, clear any user session to force password reset
+      setUser(null);
+    }
+  }, []);
+
+  // Forgot password handler
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage('');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: window.location.origin
+      });
+      if (error) throw error;
+      setForgotMessage('Password reset email sent! Check your inbox.');
+    } catch (err) {
+      setForgotMessage('Error: ' + (err.message || 'Could not send reset email.'));
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Reset password handler
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage('');
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setResetMessage('Password updated! You can now log in.');
+      setResetPasswordToken(null);
+      setAuthMode('signin');
+      // Clear the token from the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Optionally, log out the user
+      setUser(null);
+      setForceShowResetForm(false); // Hide reset form after success
+    } catch (err) {
+      setResetMessage('Error: ' + (err.message || 'Could not update password.'));
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   useEffect(() => {
     getSession();
@@ -1022,33 +1126,31 @@ function App() {
               </div>
 
               {/* Auth Mode Toggle */}
-              <div className="flex mb-8 rounded-lg p-1">
-                <button
-                  onClick={() => {
-                    setAuthMode('signin');
-                    setLoginError('');
-                  }}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
-                    authMode === 'signin'
-                      ? 'bg-black text-white shadow-sm'
-                      : 'bg-transparent text-black'
-                  }`}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setLoginError('');
-                  }}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 relative ${
-                    authMode === 'signup'
-                      ? 'bg-black text-white shadow-sm'
-                      : 'bg-transparent text-black'
-                  }`}
-                >
-                  Sign Up
-                </button>
+              <div className="flex justify-center mb-8">
+                <div className="flex rounded-xl border border-gray-200 bg-gray-100 overflow-hidden shadow-sm">
+                  <button
+                    onClick={() => { setAuthMode('signin'); setLoginError(''); }}
+                    className={`px-8 py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
+                      authMode === 'signin'
+                        ? 'bg-white text-black shadow-sm border-r border-gray-200 z-10'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-r border-gray-200'
+                    }`}
+                    style={{ borderTopLeftRadius: '0.75rem', borderBottomLeftRadius: '0.75rem' }}
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => { setAuthMode('signup'); setLoginError(''); }}
+                    className={`px-8 py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
+                      authMode === 'signup'
+                        ? 'bg-white text-black shadow-sm z-10'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                    style={{ borderTopRightRadius: '0.75rem', borderBottomRightRadius: '0.75rem' }}
+                  >
+                    Sign Up
+                  </button>
+                </div>
               </div>
 
               {/* Verification Message */}
@@ -1070,8 +1172,34 @@ function App() {
 
               {/* Auth Forms */}
               <div className="relative">
-                {authMode === 'signin' && (
+                {authMode === 'signin' && !showForgotPassword && !resetPasswordToken && (
                   <form onSubmit={handleSignIn} className="space-y-6">
+                    {/* OAuth buttons */}
+                    <div className="flex flex-col gap-3 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOAuthSignIn('google')}
+                        className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-lg font-medium border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 transition-all duration-200 shadow-sm"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.23l6.85-6.85C36.68 2.68 30.77 0 24 0 14.82 0 6.71 5.1 2.69 12.44l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.43-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.66 7.01l7.19 5.6C43.98 37.1 46.1 31.3 46.1 24.55z"/><path fill="#FBBC05" d="M10.67 28.65c-1.01-2.99-1.01-6.21 0-9.2l-7.98-6.2C.64 17.1 0 20.47 0 24c0 3.53.64 6.9 1.77 10.15l7.98-6.2z"/><path fill="#EA4335" d="M24 48c6.48 0 11.93-2.15 15.9-5.85l-7.19-5.6c-2.01 1.35-4.59 2.15-8.71 2.15-6.38 0-11.87-3.63-13.33-8.85l-7.98 6.2C6.71 42.9 14.82 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
+                        Sign in with Google
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOAuthSignIn('github')}
+                        className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-lg font-medium border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 transition-all duration-200 shadow-sm"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.262.82-.582 0-.288-.012-1.243-.017-2.252-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.606-2.665-.304-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23.96-.267 1.98-.399 3-.404 1.02.005 2.04.137 3 .404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.12 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.803 5.624-5.475 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.218.699.825.58C20.565 21.796 24 17.297 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                        Sign in with GitHub
+                      </button>
+                    </div>
+                    {/* Divider */}
+                    <div className="flex items-center my-2">
+                      <div className="flex-1 h-px bg-gray-200" />
+                      <span className="mx-2 text-xs text-gray-400">or</span>
+                      <div className="flex-1 h-px bg-gray-200" />
+                    </div>
+                    {oauthError && <p className="text-red-500 text-sm text-center">{oauthError}</p>}
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email Address</label>
                       <input
@@ -1088,17 +1216,38 @@ function App() {
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
-                      <input
-                        type="password"
-                        value={loginPassword}
-                        onChange={(e) => {
-                          setLoginPassword(e.target.value);
-                          setLoginError('');
-                        }}
-                        placeholder="Enter your password"
-                        required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          type={loginPasswordVisible ? "text" : "password"}
+                          value={loginPassword}
+                          onChange={(e) => {
+                            setLoginPassword(e.target.value);
+                            setLoginError('');
+                          }}
+                          placeholder="Enter your password"
+                          required
+                          className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
+                        />
+                        <button type="button" onClick={() => setLoginPasswordVisible(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none"
+                          tabIndex={-1}
+                          aria-label={loginPasswordVisible ? 'Hide password' : 'Show password'}
+                        >
+                          {loginPasswordVisible ? (
+                            // Eye-slash icon
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.22 1.125-4.575M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3l18 18" /></svg>
+                          ) : (
+                            // Eye icon
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          )}
+                        </button>
+                      </div>
+                      {/* Forgot Password link below password input */}
+                      <div className="text-right mt-2 mb-1">
+                        <button type="button" className="text-sm text-blue-600 hover:underline focus:outline-none" onClick={() => setShowForgotPassword(true)}>
+                          Forgot Password?
+                        </button>
+                      </div>
                       {loginError && (
                         <p className="text-red-500 text-sm mt-1">{loginError}</p>
                       )}
@@ -1132,14 +1281,59 @@ function App() {
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
-                      <input
-                        type="password"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="Create a password (min 6 characters)"
-                        required
-                        className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'}`}
-                      />
+                      <div className="flex flex-col gap-1">
+                        <div className="relative flex items-center">
+                          <input
+                            type={signupPasswordVisible ? "text" : "password"}
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
+                            placeholder="Create Password"
+                            required
+                            className="w-full px-4 py-3 pr-16 rounded-lg border border-gray-300 shadow-sm focus:shadow-md focus:border-blue-400 transition-all duration-200 bg-white text-gray-900 placeholder-gray-400 outline-none"
+                          />
+                          {/* Icon group inside input */}
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <button type="button" onClick={() => setSignupPasswordVisible(v => !v)}
+                              className="text-gray-500 hover:text-blue-600 focus:outline-none transition-colors p-0 m-0"
+                              tabIndex={-1}
+                              aria-label={signupPasswordVisible ? 'Hide password' : 'Show password'}
+                              style={{ background: 'transparent', border: 'none' }}
+                            >
+                              {signupPasswordVisible ? (
+                                // Eye-slash icon (outlined)
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.22 1.125-4.575M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" /></svg>
+                              ) : (
+                                // Eye icon (outlined)
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              )}
+                            </button>
+                            <div className="relative group">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-black text-black bg-white font-bold text-base shadow-sm transition-colors group-hover:bg-gray-100 cursor-pointer">?</span>
+                              {/* Tooltip */}
+                              <div className="absolute right-0 top-8 z-20 hidden group-hover:block bg-gray-900 text-white border border-gray-800 rounded-xl shadow-lg p-4 w-64 text-sm animate-fade-in">
+                                <div className="font-semibold mb-2">Password must have:</div>
+                                <ul className="space-y-1">
+                                  {passwordRules.map((rule, idx) => (
+                                    <li key={idx} className="flex items-center">
+                                      <span className={`mr-2 text-lg ${rule.test(signupPassword) ? 'text-green-400' : 'text-red-400'}`}>{rule.test(signupPassword) ? '✔' : '✖'}</span>
+                                      <span className={rule.test(signupPassword) ? 'text-green-300' : ''}>{rule.label}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                                {/* Arrow */}
+                                <div className="absolute right-4 -top-2 w-3 h-3 bg-gray-900 border-l border-t border-gray-800 rotate-45"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Strength bar and label below input */}
+                        <div className="flex items-center mt-2 gap-2">
+                          <span className={`text-sm font-bold min-w-[56px] ${getPasswordStrength(signupPassword).color === 'red' ? 'text-red-500' : getPasswordStrength(signupPassword).color === 'yellow' ? 'text-yellow-500' : getPasswordStrength(signupPassword).color === 'green' ? 'text-green-600' : 'text-gray-400'}`}>{getPasswordStrength(signupPassword).label}</span>
+                          <div className="flex-1 h-3 bg-gray-100 border border-gray-300 rounded-full overflow-hidden shadow-sm">
+                            <div className={`h-3 transition-all duration-300 rounded-full ${getPasswordStrength(signupPassword).color === 'red' ? 'bg-red-500 w-1/4' : getPasswordStrength(signupPassword).color === 'yellow' ? 'bg-yellow-400 w-2/4' : getPasswordStrength(signupPassword).color === 'green' ? 'bg-green-500 w-full' : 'bg-gray-100 w-0'}`}></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Confirm Password</label>
@@ -1152,13 +1346,48 @@ function App() {
                         className={`w-full px-4 py-3 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400'} ${signupConfirmPassword && signupPassword !== signupConfirmPassword ? 'border-red-500 focus:border-red-500' : ''} ${signupConfirmPassword && signupPassword === signupConfirmPassword ? 'border-green-500 focus:border-green-500' : ''}`}
                       />
                       {signupConfirmPassword && signupPassword !== signupConfirmPassword && (
-                        <p className="text-red-500 text-sm mt-1">Passwords don't match</p>
+                        <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
                       )}
                       {signupConfirmPassword && signupPassword === signupConfirmPassword && (
-                        <p className="text-green-500 text-sm mt-1">Passwords Match!</p>
+                        <p className="text-green-500 text-sm mt-1">Passwords match!</p>
                       )}
                     </div>
                     <button type="submit" disabled={isLoading} className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-300 ${isLoading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}>{isLoading ? 'Creating Account...' : 'Create Account'}</button>
+                  </form>
+                )}
+                {authMode === 'signin' && showForgotPassword && (
+                  <form onSubmit={handleForgotPassword} className="space-y-4 mt-4">
+                    <label className="block text-sm font-medium mb-1">Enter your email to reset password</label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-400"
+                      placeholder="Your email"
+                    />
+                    <button type="submit" disabled={forgotLoading} className="w-full py-3 px-6 rounded-lg font-medium bg-black text-white">
+                      {forgotLoading ? 'Sending...' : 'Send Reset Email'}
+                    </button>
+                    {forgotMessage && <p className="text-sm mt-2 text-center">{forgotMessage}</p>}
+                    <button type="button" className="text-xs text-gray-500 hover:underline mt-2" onClick={() => setShowForgotPassword(false)}>Back to Log In</button>
+                  </form>
+                )}
+                {(resetPasswordToken && forceShowResetForm) && (
+                  <form onSubmit={handleResetPassword} className="space-y-4 mt-4">
+                    <label className="block text-sm font-medium mb-1">Set a New Password</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-400"
+                      placeholder="New password"
+                    />
+                    <button type="submit" disabled={resetLoading} className="w-full py-3 px-6 rounded-lg font-medium bg-black text-white">
+                      {resetLoading ? 'Updating...' : 'Update Password'}
+                    </button>
+                    {resetMessage && <p className="text-sm mt-2 text-center">{resetMessage}</p>}
                   </form>
                 )}
               </div>
