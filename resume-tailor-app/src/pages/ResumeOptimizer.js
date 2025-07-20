@@ -203,22 +203,24 @@ const ResumeOptimizer = ({
   const fileSizeWarning = getFileSizeWarning();
 
   return (
-    <div className="max-w-6xl mx-auto p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
+    <div className="max-w-6xl w-full mx-auto p-4 md:p-6 lg:p-8 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 160px)' }}>
       {/* Loading Overlay */}
       {/* Modal overlay removed: do not render anything here when optimizing */}
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className={`text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
-        <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Upload, optimize, and download your ATS-ready resume</p>
+      <div className="text-center mb-8 md:mb-12 w-full">
+        <h1 className={`text-2xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Resume Optimizer</h1>
+        <p className={`text-base md:text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Upload, optimize, and download your ATS-ready resume</p>
       </div>
 
       {/* Progress Steps */}
-      <ProgressStepper 
-        currentStep={currentStep}
-        steps={steps}
-        loading={optimizing || finalizing}
-        processingStage={processingStage}
-      />
+      <div className="w-full overflow-x-auto mb-6">
+        <ProgressStepper 
+          currentStep={currentStep}
+          steps={steps}
+          loading={optimizing || finalizing}
+          processingStage={processingStage}
+        />
+      </div>
 
       {/* Step Content */}
       <div className="max-w-4xl w-full mx-auto">
@@ -226,7 +228,7 @@ const ResumeOptimizer = ({
         {currentStep === 1 && (
           <div className="space-y-8">
             <div
-              className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
+              className={`relative border-2 border-dashed rounded-xl p-6 md:p-12 text-center transition-all duration-300 ${
                 isDragOver
                   ? darkMode 
                     ? 'border-gray-400 bg-gray-800' 
@@ -235,7 +237,7 @@ const ResumeOptimizer = ({
                     ? 'border-gray-600 hover:border-gray-500' 
                     : 'border-gray-300 hover:border-gray-400'
               }`}
-              style={{ minHeight: '320px', minWidth: '520px', padding: '3.5rem' }}
+              style={{ minHeight: '220px', minWidth: '0', padding: '1.5rem' }}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -247,12 +249,12 @@ const ResumeOptimizer = ({
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 <div>
-                  <h3 className={`text-2xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg md:text-2xl font-semibold mb-1 md:mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {resumeFile ? 'File Selected!' : 'Drop your resume here'}
                   </h3>
-                  <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-sm md:text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     {resumeFile 
                       ? resumeFile.name 
                       : 'or click to browse files'
@@ -261,7 +263,7 @@ const ResumeOptimizer = ({
                 </div>
 
                 {!resumeFile && (
-                  <div className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                  <div className={`text-xs md:text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                     Supports .docx files only
                   </div>
                 )}

@@ -183,29 +183,29 @@ const JobTracker = ({
 
   return (
     <>
-      <div className="max-w-6xl mx-auto p-4 py-50h-screen">
+      <div className="max-w-6xl w-full mx-auto p-4 md:p-8 min-h-screen">
         {/* Header */}
-        <div className="w-full text-left mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Job Applications</h1>
-          <p className="text-base text-gray-500">Track and manage your job search progress</p>
+        <div className="w-full text-left mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Job Applications</h1>
+          <p className="text-sm md:text-base text-gray-500">Track and manage your job search progress</p>
         </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full mb-6">
-          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
-            <div className="text-xl font-bold text-gray-900">{jobApplications.length}</div>
+          <div className="rounded-lg p-3 md:p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-lg md:text-xl font-bold text-gray-900">{jobApplications.length}</div>
             <div className="text-xs text-gray-400">Total</div>
           </div>
-          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
-            <div className="text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'interviewing').length}</div>
+          <div className="rounded-lg p-3 md:p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-lg md:text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'interviewing').length}</div>
             <div className="text-xs text-gray-400">Interviewing</div>
           </div>
-          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
-            <div className="text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'offered').length}</div>
+          <div className="rounded-lg p-3 md:p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-lg md:text-xl font-bold text-gray-900">{jobApplications.filter(app => app.status === 'offered').length}</div>
             <div className="text-xs text-gray-400">Offers</div>
           </div>
-          <div className="rounded-lg p-4 bg-white shadow flex flex-col items-center border border-gray-100">
-            <div className="text-xl font-bold text-gray-900">{jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%</div>
+          <div className="rounded-lg p-3 md:p-4 bg-white shadow flex flex-col items-center border border-gray-100">
+            <div className="text-lg md:text-xl font-bold text-gray-900">{jobApplications.length > 0 ? Math.round(jobApplications.reduce((sum, app) => sum + app.optimized_ats_score, 0) / jobApplications.length) : 0}%</div>
             <div className="text-xs text-gray-400">Avg ATS</div>
           </div>
         </div>

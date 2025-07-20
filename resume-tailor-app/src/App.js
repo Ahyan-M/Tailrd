@@ -1082,41 +1082,41 @@ function App() {
   if (!user) {
   return (
       <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-        <div className="flex min-h-screen">
+        <div className="flex flex-col md:flex-row min-h-screen w-full">
           {/* Left Side - Hero Section */}
-          <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
-            <div className="max-w-md">
+          <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 md:p-12">
+            <div className="max-w-md w-full">
               <div className={`w-24 h-24 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-8`}>
                 <TailrdIcon className="w-20 h-20" />
               </div>
-              <h1 className={`text-5xl font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>Welcome to Tailrd</h1>
-              <p className={`text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The smart resume optimizer that helps you land your dream job</p>
+              <h1 className={`text-3xl md:text-5xl font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>Welcome to Tailrd</h1>
+              <p className={`text-base md:text-xl text-center mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The smart resume optimizer that helps you land your dream job</p>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <RocketIcon className="w-5 h-5" />
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>ATS-optimized resume enhancement</span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm md:text-base`}>ATS-optimized resume enhancement</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <ChartIcon className="w-5 h-5" />
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Real-time compatibility scoring</span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm md:text-base`}>Real-time compatibility scoring</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
                     <BriefcaseIcon className="w-5 h-5" />
                   </div>
-                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Job application tracking</span>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm md:text-base`}>Job application tracking</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Side - Auth Form */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-            <div className={`w-full max-w-md ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl border p-8`}>
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
+            <div className={`w-full max-w-md ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl border p-4 md:p-8`}>
               {/* Logo for mobile */}
               <div className="lg:hidden text-center mb-8">
                 <div className={`w-20 h-20 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
@@ -1124,13 +1124,12 @@ function App() {
                 </div>
                 <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tailrd</h2>
               </div>
-
               {/* Auth Mode Toggle */}
               <div className="flex justify-center mb-8">
-                <div className="flex rounded-xl border border-gray-200 bg-gray-100 overflow-hidden shadow-sm">
+                <div className="flex rounded-xl border border-gray-200 bg-gray-100 overflow-hidden shadow-sm w-full max-w-xs">
                   <button
                     onClick={() => { setAuthMode('signin'); setLoginError(''); }}
-                    className={`px-8 py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
+                    className={`w-1/2 px-2 md:px-8 py-2 md:py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
                       authMode === 'signin'
                         ? 'bg-white text-black shadow-sm border-r border-gray-200 z-10'
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-r border-gray-200'
@@ -1141,7 +1140,7 @@ function App() {
                   </button>
                   <button
                     onClick={() => { setAuthMode('signup'); setLoginError(''); }}
-                    className={`px-8 py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
+                    className={`w-1/2 px-2 md:px-8 py-2 md:py-3 font-semibold transition-all duration-200 focus:outline-none text-base ${
                       authMode === 'signup'
                         ? 'bg-white text-black shadow-sm z-10'
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -1152,7 +1151,6 @@ function App() {
                   </button>
                 </div>
               </div>
-
               {/* Verification Message */}
               {verificationSent && (
                 <div className={`mb-6 p-4 rounded-lg ${darkMode ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-200'} border`}>
@@ -1169,7 +1167,6 @@ function App() {
                   </div>
                 </div>
               )}
-
               {/* Auth Forms */}
               <div className="relative">
                 {authMode === 'signin' && !showForgotPassword && !resetPasswordToken && (
