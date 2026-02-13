@@ -115,8 +115,15 @@ function App() {
   const handleOAuthSignIn = async (provider) => {
     setOauthError('');
     try {
-      await supabase.auth.signInWithOAuth({ provider });
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}${window.location.pathname}`
+        }
+      });
+      if (error) throw error;
     } catch (err) {
+      console.error('OAuth sign-in error:', err);
       setOauthError('OAuth sign-in failed. Please try again.');
     }
   };
@@ -142,7 +149,7 @@ function App() {
     setForgotMessage('');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: window.location.origin
+        redirectTo: `${window.location.origin}${window.location.pathname}`
       });
       if (error) throw error;
       setForgotMessage('Password reset email sent! Check your inbox.');
@@ -194,7 +201,16 @@ function App() {
     try {
       // Handle authentication callback from email confirmation
       const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
+      if (error) {
+        // Handle CORS errors specifically
+        if (error.message?.includes('Failed to fetch') || error.message?.includes('CORS')) {
+          console.warn('CORS error detected. Please configure Supabase dashboard with your Vercel domain.');
+          // Don't show error to user for CORS issues during session check
+          setUser(null);
+          return;
+        }
+        throw error;
+      }
       
       // Check if we're handling a callback (email confirmation, etc.)
       const urlParams = new URLSearchParams(window.location.search);
@@ -246,7 +262,7 @@ function App() {
           data: {
             username: signupUsername,
           },
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: `${window.location.origin}${window.location.pathname}`
         }
       });
       if (error) throw error;
