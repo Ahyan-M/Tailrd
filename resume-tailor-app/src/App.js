@@ -644,7 +644,6 @@ function App() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds timeout
       
-      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData,
