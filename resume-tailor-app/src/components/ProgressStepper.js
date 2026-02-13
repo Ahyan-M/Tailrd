@@ -22,26 +22,6 @@ const ProgressStepper = ({ currentStep, steps, loading, processingStage }) => {
     }
   };
 
-  const getStageIcon = (stage) => {
-    switch (stage) {
-      case 'uploading':
-        return '📤';
-      case 'analyzing':
-        return '🔍';
-      case 'extracting':
-        return '🔑';
-      case 'scoring':
-        return '📊';
-      case 'optimizing':
-        return '⚡';
-      case 'finalizing':
-        return '✨';
-      case 'preparing':
-        return '📄';
-      default:
-        return '⏳';
-    }
-  };
 
   const getProgressPercentage = () => {
     if (loading) {

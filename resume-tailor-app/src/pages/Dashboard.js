@@ -24,6 +24,7 @@ const Dashboard = ({
       hasFetched.current = true;
       fetchJobApplications();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const recentApplications = jobApplications.slice(0, 3);

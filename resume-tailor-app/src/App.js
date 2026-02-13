@@ -55,8 +55,6 @@ function App() {
   const [jobRole, setJobRole] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [exportFormat, setExportFormat] = useState('docx');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
 
   // ATS scoring state
   const [originalAtsScore, setOriginalAtsScore] = useState(null);
@@ -94,7 +92,6 @@ function App() {
 
   // Password visibility state
   const [signupPasswordVisible, setSignupPasswordVisible] = useState(false);
-  const [signupConfirmPasswordVisible, setSignupConfirmPasswordVisible] = useState(false);
   const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
 
   // Footer state
@@ -190,6 +187,7 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getSession = async () => {
@@ -337,21 +335,6 @@ function App() {
     }
   };
 
-  // Alternative sign out method for when the main one fails
-  const forceSignOut = () => {
-    console.log('Force signing out...');
-    setUser(null);
-    
-    // Clear any stored session data
-    try {
-      localStorage.removeItem('supabase.auth.token');
-      sessionStorage.clear();
-    } catch (e) {
-      console.log('Could not clear storage:', e);
-    }
-    
-    toast.success("Signed out successfully!");
-  };
 
   // Debug authentication state
   const debugAuthState = async () => {
@@ -401,108 +384,6 @@ function App() {
     }
   };
 
-  // Resume optimization
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!resumeFile || !jobDescription) {
-      toast.error('Please upload a resume and provide a job description');
-      return;
-    }
-
-    setLoading(true);
-    setResult(null);
-    setOriginalAtsScore(null);
-    setOptimizedAtsScore(null);
-    setAtsImprovement(0);
-
-    const formData = new FormData();
-    formData.append("resume", resumeFile);
-    formData.append("jobDescription", jobDescription);
-    formData.append("companyName", companyName);
-    formData.append("jobRole", jobRole);
-    formData.append("exportFormat", exportFormat);
-
-    try {
-      // Optimized timeout and retry logic
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // Increased to 30 seconds for complex files
-
-      const startTime = Date.now();
-      
-      // Add request headers for better performance
-      const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      });
-
-      clearTimeout(timeoutId);
-      const processingTime = Date.now() - startTime;
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
-        
-        // Enhanced error handling with specific messages
-        if (response.status === 503) {
-          throw new Error('Server is busy. Please try again in a moment.');
-        } else if (response.status === 408) {
-          throw new Error('Request timed out. Please try with a smaller file or shorter description.');
-        } else if (response.status === 413) {
-          throw new Error('File is too large or complex. Please try with a smaller file.');
-        } else if (response.status === 429) {
-          throw new Error('Too many requests. Please wait a moment and try again.');
-        } else {
-          throw new Error(errorMessage);
-        }
-      }
-
-      const data = await response.json();
-      setResult(data);
-      
-      // Get ATS scores from headers if available
-      const originalScore = response.headers.get("X-Original-ATS-Score");
-      const optimizedScore = response.headers.get("X-Optimized-ATS-Score");
-      const improvement = response.headers.get("X-ATS-Improvement");
-      
-      if (originalScore) setOriginalAtsScore(JSON.parse(originalScore));
-      if (optimizedScore) setOptimizedAtsScore(JSON.parse(optimizedScore));
-      if (improvement) setAtsImprovement(parseFloat(improvement));
-
-      // Show performance metrics if available
-      if (data.performance_metrics) {
-        console.log(`Processing completed in ${processingTime}ms`, data.performance_metrics);
-      }
-
-    } catch (error) {
-      console.error("Error optimizing resume:", error);
-      
-      // Enhanced error handling with specific messages
-      if (error.name === 'AbortError') {
-        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
-      } else if (error.message.includes('File too large')) {
-        toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
-      } else if (error.message.includes('Job description too long')) {
-        toast.error("Job description is too long. Please keep it under 750 words.");
-      } else if (error.message.includes('Server is busy')) {
-        toast.error("Server is busy. Please try again in a moment.");
-      } else if (error.message.includes('timed out')) {
-        toast.error("Processing took too long. Please try with a smaller file or shorter description.");
-      } else if (error.message.includes('too complex')) {
-        toast.error("File is too complex to process. Please try with a simpler resume format.");
-      } else if (error.message.includes('Too many requests')) {
-        toast.error("Too many requests. Please wait a moment and try again.");
-      } else {
-        toast.error("Error optimizing resume. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchSuggestions = async () => {
     try {
@@ -602,7 +483,6 @@ function App() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds for finalization
 
-      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
         body: formData,
@@ -614,7 +494,6 @@ function App() {
       });
       
       clearTimeout(timeoutId);
-      const processingTime = Date.now() - startTime;
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -777,7 +656,6 @@ function App() {
       });
       
       clearTimeout(timeoutId);
-      const processingTime = Date.now() - startTime;
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -881,7 +759,6 @@ function App() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds for fast mode
       
-      const startTime = Date.now();
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
         body: formData,
@@ -894,7 +771,6 @@ function App() {
       });
       
       clearTimeout(timeoutId);
-      const processingTime = Date.now() - startTime;
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -940,8 +816,6 @@ function App() {
     setJobRole('');
     setJobDescription('');
     setExportFormat('docx');
-    setLoading(false);
-    setResult(null);
     setOriginalAtsScore(null);
     setOptimizedAtsScore(null);
     setAtsImprovement(0);
@@ -961,7 +835,7 @@ function App() {
     if (!user || !companyName || !jobRole) return;
     
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('job_applications')
         .insert([
           {

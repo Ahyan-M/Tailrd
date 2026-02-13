@@ -78,7 +78,7 @@ const ATSGuide = ({ darkMode }) => {
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl p-4 md:p-8 mb-6 md:mb-8 w-full`}>
         <h2 className={`text-lg md:text-2xl font-bold mb-4 md:mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>ATS Best Practices</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          <div className="space-y-3 md:space-y-4 p-4 rounded-lg bg-green-100 ${darkMode ? 'bg-green-900' : ''}">
+          <div className={`space-y-3 md:space-y-4 p-4 rounded-lg ${darkMode ? 'bg-green-900' : 'bg-green-100'}`}>
             <h3 className={`text-base md:text-lg font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>              <CheckCircleIcon className="w-5 h-5 text-green-600" /> Do's</h3>
             <ul className={`list-disc list-inside space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm md:text-base`}>
               <li>Use standard section headings (Experience, Education, Skills)</li>
@@ -89,7 +89,7 @@ const ATSGuide = ({ darkMode }) => {
               <li>Keep your resume to 1-2 pages maximum</li>
             </ul>
           </div>
-          <div className="space-y-3 md:space-y-4 p-4 rounded-lg bg-red-100 ${darkMode ? 'bg-red-900' : ''}">
+          <div className={`space-y-3 md:space-y-4 p-4 rounded-lg ${darkMode ? 'bg-red-900' : 'bg-red-100'}`}>
             <h3 className={`text-base md:text-lg font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>              <CircleXmarkIcon className="w-5 h-5 text-red-600" /> Don'ts</h3>
             <ul className={`list-disc list-inside space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm md:text-base`}>
               <li>Use tables, images, or graphics</li>

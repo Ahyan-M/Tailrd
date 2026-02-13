@@ -1,11 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ReactComponent as ToDoAltIcon } from '../assets/icons/to-do-alt.svg';
-import { ReactComponent as BullseyeArrowIcon } from '../assets/icons/bullseye-arrow.svg';
-import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle.svg';
-import { ReactComponent as ScriptIcon } from '../assets/icons/script.svg';
-import { ReactComponent as ChartLineUpIcon } from '../assets/icons/chart-line-up.svg';
-import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
-import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import Toast from '../components/Toast';
 import StatusDropdown from '../components/StatusDropdown';
 
@@ -50,6 +43,7 @@ const JobTracker = ({
       hasFetched.current = true;
       fetchJobApplications();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Toast helpers
@@ -348,7 +342,6 @@ const JobTracker = ({
             ) : (
               <div className="space-y-3">
                 {filteredAndSortedApplications.map((app) => {
-                  const statusObj = statusOptions.find(opt => opt.value === (app.status || 'applied')) || statusOptions[0];
                   return (
                     <div
                       key={app.id}

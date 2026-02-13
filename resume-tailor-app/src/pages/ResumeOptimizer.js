@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReactComponent as MemoIcon } from '../assets/icons/memo.svg';
 import { ReactComponent as BriefcaseIcon } from '../assets/icons/briefcase.svg';
 import { ReactComponent as BoltIcon } from '../assets/icons/bolt.svg';
 import { ReactComponent as DownToLineIcon } from '../assets/icons/down-to-line.svg';
-import { ReactComponent as BullseyeArrowIcon } from '../assets/icons/bullseye-arrow.svg';
 import ProgressStepper from '../components/ProgressStepper';
 
 const ResumeOptimizer = ({
@@ -63,9 +62,7 @@ const ResumeOptimizer = ({
     return { color: 'text-red-600', label: 'Needs Improvement' };
   };
 
-  const canProceedToStep2 = resumeFile;
   const canProceedToStep3 = companyName && jobRole && jobDescription;
-  const canProceedToStep4 = atsScores;
 
   const handleOptimize = async () => {
     setOptimizing(true);
@@ -143,30 +140,6 @@ const ResumeOptimizer = ({
     }
   };
 
-  const getStageMessage = (stage) => {
-    switch (stage) {
-      case 'uploading':
-        return 'Uploading your resume...';
-      case 'analyzing':
-        return 'Analyzing your resume...';
-      case 'extracting':
-        return 'Extracting text from your resume...';
-      case 'scoring':
-        return 'Scoring your resume...';
-      case 'optimizing':
-        return 'Optimizing your resume...';
-      case 'finalizing':
-        return 'Finalizing your resume...';
-      default:
-        return 'Processing...';
-    }
-  };
-
-  const getProgressPercentage = () => {
-    const totalTime = 1000 + 1200 + 1000 + 1500 + 2000 + 1000; // Sum of all stages
-    const elapsedTime = totalTime - (optimizing ? 0 : 1000); // Subtract the current stage if optimizing
-    return (elapsedTime / totalTime) * 100;
-  };
 
   const getEstimatedTime = () => {
     if (!resumeFile) return '2-3 minutes';
