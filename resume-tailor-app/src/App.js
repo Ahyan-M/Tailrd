@@ -409,9 +409,9 @@ function App() {
       
       console.log("Fetching suggestions...");
       
-      // Optimized timeout for suggestions
+      // Timeout for suggestions (60s to accommodate cold starts, e.g. Render free tier)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // Reduced to 15 seconds for suggestions
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const response = await fetch(API_ENDPOINTS.SUGGEST_KEYWORDS, {
         method: "POST",
@@ -447,11 +447,15 @@ function App() {
       console.error("Error fetching suggestions:", error);
       
       // Handle specific error types
-       if (error.message.includes('File too large')) {
+      if (error.name === 'AbortError') {
+        toast.error("Keyword suggestions timed out. The server may be starting up—please try again in a moment.");
+      } else if (error.message.includes('File too large')) {
         toast.error("File is too large for keyword suggestions. Please upload a smaller resume file.");
       } else if (error.message.includes('Job description too long')) {
         toast.error("Job description is too long for keyword suggestions. Please shorten it.");
-      } 
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+        toast.error("Could not reach the server. Please check your connection and that the API is running.");
+      }
       
       setSuggestedKeywords([]);
     }
@@ -495,9 +499,9 @@ function App() {
     }
     
     try {
-      // Optimized timeout for finalization
+      // Timeout for finalization (90s for cold starts and heavy processing)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds for finalization
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
 
       const response = await fetch(API_ENDPOINTS.FINALIZE_RESUME, {
         method: "POST",
@@ -561,7 +565,7 @@ function App() {
       
       // Enhanced error handling with specific messages
       if (error.name === 'AbortError') {
-        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
+        toast.error("Request timed out. The server may be starting up—please try again in a moment.");
       } else if (error.message.includes('File too large')) {
         toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
       } else if (error.message.includes('Job description too long')) {
@@ -656,9 +660,9 @@ function App() {
     }
     
     try {
-      // Optimized request with better headers and timeout
+      // Timeout for optimize (90s to accommodate cold starts and heavy processing)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds timeout
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
       
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
@@ -719,7 +723,7 @@ function App() {
       
       // Enhanced error handling with specific messages
       if (error.name === 'AbortError') {
-        toast.error("Request timed out. Please try again with a smaller file or shorter job description.");
+        toast.error("Request timed out. The server may be starting up—please try again in a moment.");
       } else if (error.message.includes('File too large')) {
         toast.error("File is too large. Please upload a smaller resume file (max 16MB).");
       } else if (error.message.includes('Job description too long')) {
@@ -770,9 +774,9 @@ function App() {
     }
     
     try {
-      // Shorter timeout for fast mode
+      // Timeout for fast mode (60s to accommodate cold starts)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds for fast mode
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
       
       const response = await fetch(API_ENDPOINTS.OPTIMIZE_DOCX, {
         method: "POST",
@@ -817,7 +821,11 @@ function App() {
       }
     } catch (error) {
       console.error("Error in fast optimization:", error);
-      toast.error("Fast optimization failed. Please try the standard optimization.");
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out. The server may be starting up—please try again in a moment.");
+      } else {
+        toast.error("Fast optimization failed. Please try the standard optimization.");
+      }
     } finally {
       setFinalizing(false);
     }
